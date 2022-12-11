@@ -1,0 +1,92 @@
+#!/usr/bin/env zsh
+
+source "$DOTFILES/zsh/aliases"
+old_md5=""
+new_md5=""
+
+monitor_type="$1" && shift
+
+case "$monitor_type" in
+    git)
+        diff_command=("git" "diff")
+        ;;
+    git-path)
+        git_path="$1" && shift
+        diff_command=("git" "diff" "--" "$git_path")
+        ;;
+    file)
+        filename="$1" && shift
+        if [[ ! -f "$filename" ]]; then
+             recho "No file: $filename"
+             exit 1
+        fi
+        diff_command=("cat" "$filename")
+        echo "$filename"
+        ;;
+    files)
+        diff_command=("cat")
+        while [[ "$1" != '--' ]]; do
+            filename="$1" && shift
+            if [[ ! -f "$filename" ]]; then
+                 recho "No file: $filename"
+                 exit 1
+            fi
+            diff_command+=("$filename")
+        done
+        shift
+        ;;
+    *)
+        recho "Unknown 'monitor_type': $monitor_type"
+        exit 1
+        ;;
+esac
+
+run() {
+    new_md5="$($diff_command | md5sum)"
+    if [[ "$old_md5" != "$new_md5" ]]; then
+        old_md5="$new_md5"
+        becho "Executing $(date +%H:%M:%S): $@"
+        eval "$@"
+        if [[ "$?" == '0' ]]; then
+            becho "READY $(date +%H:%M:%S): $@"
+        else
+            recho "READY $(date +%H:%M:%S): $@"
+        fi
+        while read -t 0; do :; done
+    fi
+}
+
+while true; do
+    run $@
+
+    read -s -k 1 -t 2 input
+    case "$input" in
+        r)
+            old_md5=""
+            ;;
+        z)
+            tmux resize-pane -Z
+            # allow user to (continually) re-run while in full screen
+            while true; do
+                read -s -k 1 input
+                case "$input" in
+                    r)
+                        old_md5=""
+                        run $@
+                        ;;
+                    *)
+                        break
+                        ;;
+                esac
+            done
+
+            tmux resize-pane -Z
+            tmux select-pane -t 0
+            new_md5="$($diff_command | md5sum)"
+            old_md5="$new_md5"
+            ;;
+    esac
+
+    read -s -t 0
+    input=""
+done

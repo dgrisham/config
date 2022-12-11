@@ -1,0 +1,117 @@
+#!/usr/bin/env zsh
+
+# constants
+# ---------
+wifi_config="/etc/wpa_supplicant/wifi_networks"
+wifi_card="wlan0"
+
+# reconnect using wpa_supplicant
+# ------------------------------
+wifi_connect() {
+    wifi_disconnect
+    sudo wpa_supplicant -B -Dnl80211 -i"$wifi_card" -c"$wifi_config"
+    sudo dhcpcd "$wifi_card"
+}
+
+# disconnect
+# ----------
+wifi_disconnect() {
+    sudo pkill wpa_supplicant
+    sudo pkill dhcpcd
+}
+
+# edit the wifi networks file
+# ---------------------------
+wifi_edit() {
+    sudo -E "${EDITOR:-vi}" "$wifi_config"
+}
+
+# create new network connection
+# -----------------------------
+wifi_new() {
+    local ssid="$1"
+    [[ -z "$ssid" ]] && return 1
+    echo "$ssid"
+    printf "[o]pen or [c]losed network: "
+    read network_type
+    echo
+    echo "Outputting to '$wifi_config'..."
+    case "$network_type" in
+        o*|O*)
+            echo '\n'                   | sudo tee -a "$wifi_config"
+            echo 'network={'            | sudo tee -a "$wifi_config"
+            echo '    ssid="'"$ssid"'"' | sudo tee -a "$wifi_config"
+            echo '    key_mgmt=NONE'    | sudo tee -a "$wifi_config"
+            echo '}'                    | sudo tee -a "$wifi_config"
+            echo '\n'                   | sudo tee -a "$wifi_config"
+            ;;
+        c*|C*)
+            echo "enter passphrase..."
+            wpa_passphrase "$ssid" | sudo tee -a "$wifi_config"
+            ;;
+        *)
+            echo "Unrecognized network type: '$network_type'"
+            ;;
+    esac
+}
+
+# scan for networks in area
+# -------------------------
+wifi_scan() {
+
+# perl -pe '1 while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) { print "test"; }'
+# echo "$w" | perl -n <(echo 'while (<>) { $x =~ /^BSS:.*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g); print "test"; }')
+# echo "$w" | perl -n <(echo 'while (<> =~ /^BSS:.*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) { print "test"; }')
+
+# perl -n '1 while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) {
+# while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) {
+# }
+# while ($x =~ /(\w+)/g) {
+#     print "Word is $1, ends at position ", pos $x, "\n";
+# }
+
+
+    sudo iw dev "$wifi_card" scan \
+        | grep 'SSID:' \
+        | sed -e 's/^[ \t]*SSID:[ \t]*//' \
+        | grep -v '\\x00' \
+        | sort -u
+}
+
+# nice interactive wifi-finder
+# ----------------------------
+wifi_menu() {
+    sudo ip link set "$wifi_card" up
+    local aps=$(wifi_scan)
+    wifi_new "$(sk <<<$aps)" $@
+}
+
+# interface
+# ---------
+wifi_command="$1"
+[[ -z "$wifi_command" ]] && exit 0
+shift
+case "$wifi_command" in
+    c|connect)
+        wifi_connect $@
+        ;;
+    d|disconnect)
+        wifi_disconnect $@
+        ;;
+    e|edit)
+        wifi_edit $@
+        ;;
+    m|menu)
+        wifi_menu $@
+        ;;
+    m|scan)
+        wifi_scan $@
+        ;;
+    r|restart)
+        wifi_disconnect
+        wifi_connect $@
+        ;;
+    *)
+        echo "Unrecognized command: '$wifi_command'"
+        ;;
+esac

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+get_charging_state() {
+    case $(cat /sys/class/power_supply/BAT1/status) in
+        'Discharging')  echo 'D' ;;
+        'Charging')     echo 'C' ;;
+        'Not charging') echo 'F' ;;
+        *)              echo '?' ;;
+    esac
+}
+
+get_battery_capacity() {
+    cat /sys/class/power_supply/BAT1/capacity
+}
+
+echo "$(date +'%H:%M %a %d %b') | $(get_battery_capacity)% ($(get_charging_state))"

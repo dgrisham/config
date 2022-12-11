@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# format="-f18"
+format="-fworst" # leave empty for default
+
+player="mpv --pause --quiet --geometry=50%:50% --keep-open"
+tmpdir="$XDG_CACHE_HOME/yt"
+mkdir -p $tmpdir
+
+url="$1"
+[[ -z "$url" ]] && exit 1
+filepath="$tmpdir/$(youtube-dl --id --get-filename $format $url)"
+# echo "youtube-dl --id --get-filename $format '$url'" >~/info
+# echo "$filepath" >>~/info
+
+youtube-dl -c -o $filepath $format $url &
+echo $! > $filepath.$$.pid
+
+while [ ! -r $filepath ] && [ ! -r $filepath.part ]; do
+	echo "Waiting for youtube-dl..."
+	sleep 3
+done
+
+echo "Buffering a bit before starting..."
+sleep 10
+
+[ -r $filepath.part ] && $player $filepath.part || $player $filepath
+
+kill $(cat $filepath.$$.pid)
+rm $filepath.$$.pid
