@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+[[ -z "$WENV" ]] && { /usr/local/bin/kak $@ ; return 0 }
+local server_name=$(sed 's/\//-/g' <<< $WENV)
+local socket_file=$(grep $server_name <<< $(/usr/local/bin/kak -l))
+[[ $socket_file == "" ]] && /usr/local/bin/kak -d -s $server_name &
+/usr/local/bin/kak -c $server_name $@

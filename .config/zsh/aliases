@@ -122,16 +122,6 @@ edit_week() {
 }
 alias ew='edit_week'
 
-# copy etc
-# --------
-cp_etc() {
-    local dir="$1"
-    [[ ! -d "$DOTFILES/etc/$dir" ]] && return 1
-    for file in $(find "$DOTFILES/etc/$dir" -type f); do
-        sudo cp "$file" "${file#$DOTFILES}"
-    done
-}
-
 # Don't forget
 # ------------
 # cuesplit && cd split && for f in *.flac; do ffmpeg -i $f -ab 320k -map_metadata 0 -id3v2_version 3 "${f%.*}.mp3"; done && mkdir mp3 && mv *.mp3 mp3
