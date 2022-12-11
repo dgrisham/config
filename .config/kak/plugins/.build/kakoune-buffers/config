@@ -1,0 +1,26 @@
+try %{ 
+
+    hook global WinDisplay .* info-buffers
+    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
+    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
+    alias global bd delete-buffer
+    alias global bf buffer-first
+    alias global bl buffer-last
+    alias global bo buffer-only
+    alias global bo! buffer-only-force
+ } catch %{
+    echo -debug "Error while evaluating 'kakoune-buffers' configuration: %val{error}"
+
+    set-option -add current plug_conf_errors "Error while evaluating 'kakoune-buffers' configuration:"
+    set-option -add current plug_conf_errors %sh{ printf "\n    " }
+    set-option -add current plug_conf_errors %val{error}
+    set-option -add current plug_conf_errors %sh{ printf "\n\n" }
+
+    hook -once -group plug-conf-err global WinDisplay .* %{
+        info -style modal -title "plug.kak error" "%opt{plug_conf_errors}"
+        on-key %{
+            info -style modal
+            execute-keys -with-maps -with-hooks %val{key}
+        }
+    }
+}

@@ -1,0 +1,74 @@
+# Terminal
+if [[ $TMUX = "" ]]; then
+    export TERM='xterm-256color'
+fi
+export DISABLE_AUTO_TITLE=true
+
+# Bin
+export BIN="$HOME/bin"
+export PATH="$BIN:$HOME/.local/bin:$PATH"
+
+# Directories
+export DOTFILES="$HOME/dotfiles"
+export DOWNLOADS="$HOME/downloads"
+export SRC="$HOME/src"
+export MEDIA="$HOME/media"
+export MUSIC="$MEDIA/music"
+export SCRATCH="$HOME/scratch"
+
+## XDG
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_DOWNLOAD_DIR="$DOWNLOADS"
+export XDG_DESKTOP_DIR="/dev/null"
+
+# export MAGIC="$HOME/.magic"
+
+# zsh
+export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
+
+# Defaults
+export EDITOR=kak_session
+export VISUAL="$EDITOR"
+export BROWSER="tabbed -c -r2 surf -e x -SN"
+
+export USER_SVDIR=$XDG_CONFIG_HOME/sv
+
+# mpd
+export MPD_HOST=127.0.0.1
+
+## GPG
+# export TTY=$(tty)
+# export GPG_TTY=$TTY
+
+# path
+
+## Go path
+export GOPATH="$HOME/.go"
+# add GOPATH/bin to PATH
+export PATH="$GOPATH/bin:$PATH"
+
+## yarn
+export PATH="$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+# config
+
+## beets config
+export BEETSDIR="$XDG_CONFIG_HOME/beets"
+
+## latex
+export TEXMFHOME="$XDG_CONFIG_HOME/texmf"
+
+# pass settings
+export PASSWORD_STORE_CLIP_TIME=1000000000
+
+# skim
+export SKIM_DEFAULT_OPTIONS='--color=empty,query:255,fg:243,matched:226,current:255,current_match:226,spinner:127,info:33,prompt:248,cursor:255,selected:255'
+export SKIM_DEFAULT_COMMAND="find . -type f ! -path '*/\.git/*' ! -path '*/\node_modules/*';"
+
+# lf
+export LF_COLORS="di=37:su=37:"
+
+export COLUMNS="120"

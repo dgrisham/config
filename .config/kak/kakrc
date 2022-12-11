@@ -1,0 +1,317 @@
+## clippy -> dilbert
+set-option global ui_options terminal_set_title=false terminal_assistant=dilbert
+
+## swap space and comma
+map global normal <space> ,
+map global normal , <space>
+
+## Hooks
+
+# (case-insensitive) search
+map global user / '/(?i)' -docstring 'case-insensitive search'
+# map global user S 'S(?i)'
+
+map global user > 'i▸<esc>' -docstring 'insert ▸'
+
+declare-user-mode selection
+map global selection i 's(?i)' -docstring 'case-insensitive select'
+def selection-exclude %{ execute-keys %sh{
+    printf 's[^\\n]+<left><left>'
+}}
+map global selection e :selection-exclude<ret> -docstring 'select all except input character group'
+def -hidden selection %{ enter-user-mode selection }
+map global user s :selection<ret> -docstring 'selection shortcuts'
+
+# add line numbers
+hook global KakBegin .* %{addhl global/ number-lines -relative}
+
+hook global WinCreate .*[.](md|tex|rst) %{
+    set buffer autowrap_column 120
+    autowrap-enable
+}
+
+declare-user-mode fmt
+map global fmt g '"ZZ<a-a>p|fmt --width 120 --goal 120<ret>;"Zz' -docstring 'Wrap current paragraph to 120 characters'
+map global fmt G 'S\n\n+<ret>|fmt --width 120 --goal 120<ret>' -docstring 'Wrap selected block of paragraphs to 120 characters'
+map global fmt c '"ZZ<a-i>p<a-j><a-h>;' -docstring 'Collapse current paragraph to one line'
+map global fmt C 'S\n\n+<ret><a-i>p<a-j>' -docstring 'Collapse selected paragraphs to one line'
+def -hidden fmt %{ enter-user-mode fmt }
+map global user g :fmt<ret> -docstring 'paragraph formatting subcommands'
+
+# add brackets highlighting
+hook global KakBegin .* %{addhl global/ show-matching}
+
+# highlight trailing whitespace at the end of lines
+hook -group TrailingWhitespaces global KakBegin .* %{
+    addhl global/ regex "[ \t]+$" 0:default,red
+}
+
+# colors
+colorscheme plain-grish
+
+# scroll offset
+set global scrolloff 20,0
+
+# tabs
+## 4-space tabs
+set global indentwidth 4
+set global tabstop 4
+## 2-space tabs for Haskell
+hook global BufSetOption filetype=.*?(haskell|ruby|yaml|html|css) %{
+    set buffer tabstop 2
+    set buffer indentwidth 2
+}
+# # soft tabs (excluding makefiles and Go)
+hook global BufSetOption filetype=(?!go)(?!makefile)(?!c).* %{
+    hook buffer InsertChar \t %{ exec -draft -itersel h@ }
+}
+
+map global insert <backspace> ⌫
+hook global InsertChar ⌫ %{ try %{
+    execute-keys <backspace>
+    try %{
+        execute-keys -draft hGh <a-k>\A\h+\z<ret> <lt>
+    } catch %{
+        execute-keys <backspace>
+    }
+} }
+
+def toggle-spell %{
+    try %{
+        addhl window/ ranges 'spell_regions'
+        spell
+    } catch %{ rmhl window/ranges_spell_regions }
+}
+map global user <a-s> :toggle-spell<ret> -docstring 'toggle spellcheck'
+
+# tab indents or tab-completes, depending on context
+hook global InsertCompletionShow .* %{
+    try %{
+        # this command temporarily removes cursors preceded by whitespace;
+        # if there are no cursors left, it raises an error, does not
+        # continue to execute the mapping commands, and the error is eaten
+        # by the `try` command so no warning appears.
+        execute-keys -draft 'h<a-K>\h<ret>'
+        map window insert <tab> <c-n>
+        map window insert <s-tab> <c-p>
+    }
+}
+hook global InsertCompletionHide .* %{
+    unmap window insert <tab> <c-n>
+    unmap window insert <s-tab> <c-p>
+}
+
+# Tmux integration
+# ================
+
+declare-user-mode tmux
+def -hidden tmux %{ enter-user-mode tmux }
+
+map global tmux y ':nop %sh{tmux set-buffer "${kak_selection}"}<ret>' -docstring 'yank primary selection to tmux buffer'
+map global tmux p 'o<esc>!tmux show-buffer<ret>'                      -docstring 'paste tmux buffer contents'
+
+map global tmux '\'       ':tmux-terminal-horizontal kak -c %val{session}<ret>' -docstring 'horizontal split'
+map global tmux '<minus>' ':tmux-terminal-vertical   kak -c %val{session}<ret>' -docstring 'vertical split'
+map global tmux c         ':tmux-terminal-window     kak -c %val{session}<ret>' -docstring 'new window'
+
+declare-user-mode tmux-lf
+map global tmux    f         ':enter-user-mode tmux-lf<ret>'                    -docstring 'lf'
+map global tmux-lf '\'       ':tmux-terminal-horizontal zsh -c "lf ; zsh"<ret>' -docstring 'horizontal fzf split'
+map global tmux-lf '<minus>' ':tmux-terminal-vertical   zsh -c "lf ; zsh"<ret>' -docstring 'vertical fzf split'
+map global tmux-lf c         ':tmux-terminal-window     zsh -c "lf ; zsh"<ret>' -docstring 'new fzf window'
+
+
+declare-user-mode tmux-grep
+map global tmux g              ':enter-user-mode tmux-grep<ret>'                -docstring 'grep'
+map global tmux-grep '\'       ':tmux-terminal-horizontal alias_call skak<ret>' -docstring 'horizontal grep split'
+map global tmux-grep '<minus>' ':tmux-terminal-vertical   alias_call skak<ret>' -docstring 'vertical grep split'
+map global tmux-grep c         ':tmux-terminal-window     alias_call skak<ret>' -docstring 'new grep window'
+
+map global user t :tmux<ret> -docstring 'prefix for tmux subcommands'
+
+# Git
+# ===
+
+hook global WinSetOption filetype=diff %{
+    map window normal '@' /^@@<ret>
+    map window normal '#' /^diff\><ret>
+}
+
+# X11 (copy/paste)
+# ===============
+map global user y 'y<a-|>xclip -selection c<ret>' -docstring 'copy to X clipboard'
+map global user p '!xclip -selection c -o<ret>' -docstring 'paste from X clipboard'
+
+# commenting
+declare-user-mode commenting
+map global commenting c ':comment-line<ret>' -docstring 'line comment'
+map global commenting b '<a-i>pH:comment-block<ret>' -docstring 'block comment'
+def comment %{ enter-user-mode commenting }
+map global user c :comment<ret> -docstring 'comment commands'
+
+# Filetype support
+# ================
+
+# python
+hook global BufSetOption filetype=python %!
+    map global user d 'iprint(f": {}")<esc>h<a-a>bs(?=[:}])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
+!
+
+hook global BufSetOption filetype=go %!
+    declare-user-mode write-code-template
+    map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
+    map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
+hook global BufSetOption filetype=javascript %!
+    map global user d 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
+!
+
+hook global BufSetOption filetype=javascript %!
+    declare-user-mode write-code-template
+    map global write-code-template c 'I* <esc>A *<esc>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
+hook global BufSetOption filetype=jai %!
+    declare-user-mode write-code-template
+    map global write-code-template c 'I* <esc>A *<esc>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
+hook global BufSetOption filetype=yaml %!
+    declare-user-mode write-code-template
+    map global write-code-template c 'I# <esc>A #<esc>xypxI<esc><a-l>r#xykP' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
+hook global BufSetOption filetype=sql %!
+    declare-user-mode write-code-template
+    map global write-code-template c 'I-- <esc>A --<esc>xypHr-jxypj<a-h>r-;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
+# Markdown manipulation
+# =====================
+
+hook global BufSetOption filetype=(markdown|latex) %{
+
+    # custom commands
+    def header %{
+        on-key %{ evaluate-commands %sh{
+            case "$kak_key" in
+                '1') echo 'exec hxypjxHr=A<ret><esc>' ;;
+                '2') echo 'exec hxypjxHr-A<ret><esc>' ;;
+                '3') echo 'exec I###<space><esc>A<ret><esc>' ;;
+            esac
+        } }
+    }
+    map global user h :header<ret> -docstring 'headers'
+    #map global user b %{ | pandoc-citeproc --bib2yaml --format=biblatex <ret> }
+
+    def inline_code_helper %{ exec ',ea`f`a{.}<esc>;i' }
+    def inline_code %{
+        on-key %{ evaluate-commands %sh{
+            case $kak_key in
+                'i') echo inline_code_helper ;;
+                'h') echo 'inline_code_helper;exec hs<esc><ret>' ;;
+                'p') echo 'inline_code_helper;exec python<esc><ret>' ;;
+                'r') echo 'inline_code_helper;exec ruby<esc><ret>' ;;
+            esac
+        } }
+    }
+    map global user i :inline_code<ret> -docstring 'inline code'
+}
+
+hook global BufSetOption filetype=(restructuredtext) %{
+
+    # custom commands
+    def -hidden header %{
+        on-key %{ evaluate-commands %sh{
+            case $kak_key in
+                1) echo 'exec hxypjxHr=A<ret><esc>' ;;
+                2) echo 'exec hxypjxHr-A<ret><esc>' ;;
+                3) echo 'exec hxypjxHr~A<ret><esc>' ;;
+                4) echo 'exec hxypjxHr+A<ret><esc>' ;;
+                5) echo 'exec hxypjxHr.A<ret><esc>' ;;
+            esac
+        } }
+    }
+    map global user h :header<ret> -docstring 'make header'
+
+    declare-user-mode roles
+    map global roles d 'i``<esc>hi' -docstring 'default'
+    map global roles i 'i````<esc>hhi' -docstring 'literal'
+    map global roles m 'i:math:``<esc>hi' -docstring 'math'
+    map global roles l 'i:raw-latex:``<esc>hi' -docstring 'raw latex'
+    map global roles t 'i:todo:``<esc>hi' -docstring 'todo'
+    map global roles b 'i:hl-cyan:`TODO`<esc>' -docstring 'cyan todo'
+    map global roles c 'i:todo:`cite`<esc>' -docstring 'todo cite'
+    map global roles r 'i::``<esc>hhhi' -docstring 'empty role'
+    def -hidden role %{ enter-user-mode roles }
+    map global user r :role<ret> -docstring 'insert role'
+}
+
+# inline git blame
+# ----------------
+
+define-command -hidden git-blame-hover -docstring "Render git blame" %{ evaluate-commands %sh{
+    blame="$(git blame -L ${kak_cursor_line},+1 ${kak_buffile} | grep -oP '^([^)]+)\)')"
+    summary="$(git blame --line-porcelain -L 11,+1 main.go | grep -oP '(?<=summary )[^\n]+')"
+    printf "info -anchor %d.%d '%s %s'" ${kak_cursor_line} ${kak_cursor_column} "$blame $summary"
+}}
+map global user h :git-blame-hover<ret> -docstring 'git blame hover'
+
+# Formatting
+# ----------
+
+hook global WinSetOption filetype=go %{
+    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ gofumports -e -w "$kak_buffile" }; edit! }
+    map global user g :go-format<ret> -docstring 'format'
+}
+
+hook global WinSetOption filetype=python %{
+    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ black "$kak_buffile" }; edit! }
+}
+
+# Plugins
+# =======
+
+source "%val{config}/plugins/plug.kak/rc/plug.kak"
+plug "robertmeta/plug.kak" noload
+plug "alexherbo2/prelude.kak"
+plug "occivink/kakoune-find"
+plug "Delapouite/kakoune-palette"
+plug "TeddyDD/kakoune-lf"
+plug "eraserhd/kak-ansi"
+
+plug "occivink/kakoune-expand" config %{
+    map -docstring "expand" global user x ': expand<ret>'
+    # 'lock' mapping where pressing <space> repeatedly will expand the selection
+    declare-user-mode expand
+    map -docstring "expand" global expand <space> ': expand<ret>'
+    map -docstring "expand (lock)" global user X       ': expand; enter-user-mode -lock expand<ret>'
+}
+
+plug "h-youhei/kakoune-surround" config %{
+    declare-user-mode surround
+    map global surround a ':surround<ret>' -docstring 'add enclosing pair'
+    map global surround d ':delete-surround<ret>' -docstring 'delete enclosing pair'
+    map global surround c ':change-surround<ret>' -docstring 'change enclosing pair'
+    map global surround t ':select-surrounding-tag<ret>' -docstring 'select surround tag'
+    map global user e ':enter-user-mode surround<ret>' -docstring 'surround'
+}
+
+plug "Delapouite/kakoune-buffers" config %{
+    hook global WinDisplay .* info-buffers
+    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
+    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
+    alias global bd delete-buffer
+    alias global bf buffer-first
+    alias global bl buffer-last
+    alias global bo buffer-only
+    alias global bo! buffer-only-force
+}
