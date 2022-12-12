@@ -5,7 +5,7 @@ After=network.target sound.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/mpd --no-daemon /home/grish/dotfiles/mpd/mpd.conf
+ExecStart=/usr/bin/mpd --no-daemon /home/grish/.config/mpd/mpd.conf
 
 # allow MPD to use real-time priority 50
 LimitRTPRIO=50

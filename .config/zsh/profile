@@ -23,6 +23,8 @@ export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_DOWNLOAD_DIR="$DOWNLOADS"
 export XDG_DESKTOP_DIR="/dev/null"
 
+export HISTFILE="$XDG_CONFIG_HOME/zsh/histfile"
+
 # export MAGIC="$HOME/.magic"
 
 # zsh

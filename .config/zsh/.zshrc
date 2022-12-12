@@ -36,6 +36,8 @@ setopt INC_APPEND_HISTORY
 # cd into directory automatically
 setopt AUTO_CD
 
+export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump"
+
 # Basic auto/tab complete:
 autoload -U compinit
 zstyle ':completion:*' menu select

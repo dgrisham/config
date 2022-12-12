@@ -47,7 +47,7 @@ alias apv='mpv --vid=no'
 alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
 alias fd='/usr/bin/fd --hidden'
-alias ag="/usr/local/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git"
+alias ag="/usr/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git"
 
 # curl with status code
 alias scurl='curl -w "%{http_code}"'
