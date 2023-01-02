@@ -2,9 +2,10 @@
 
 export DISPLAY=:0
 
-bookmark="$(xclip -o)"
 snippets_file="$HOME/.local/share/snippets"
 
+bookmark="$(xclip -o)"
+[[ -z "$bookmark" ]] && bookmark="$(xclip -selection c -o)"
 [[ -z "$bookmark" ]] && { herbe "Selection is empty" ; return 1 ; }
 
 if grep -q "^$bookmark$" $snippets_file; then
