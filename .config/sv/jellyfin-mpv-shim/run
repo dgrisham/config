@@ -1,0 +1,3 @@
+#!/bin/sh
+
+XDG_RUNTIME_DIR=/run/user/$(id -u) DISPLAY=:0 exec /usr/bin/jellyfin-mpv-shim >$HOME/.local/var/log/jellyfin-mpv-shim/log.out 2>$HOME/.local/var/log/jellyfin-mpv-shim/log.err
