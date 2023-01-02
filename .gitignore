@@ -29,6 +29,7 @@
 .config/wenv/
 .config/zsh/.zcompdump
 .config/zsh/history
+.gitconfig
 .gnupg/
 .local/
 .mbsyncrc
@@ -42,6 +43,7 @@
 .ssh/
 .urlview
 .wget-hsts
+.Xauthority
 downloads/
 media/
 personal/
