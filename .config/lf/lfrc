@@ -1,6 +1,12 @@
 set promptfmt "\033[36m%u@%h\033[0m:\033[93m%d\033[0m\033[1m%f\033[0m"
 set hidden on
 
+map D ${{
+    printf "delete $fx? [y/N] "
+    read ans
+    [ $ans = 'y' ] && rm -rf $fx
+}}
+
 cmd open ${{
     test -L $f && f=$(readlink -f "$f")
     fname=$(basename -- "$f")
