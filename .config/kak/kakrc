@@ -139,8 +139,24 @@ hook global WinSetOption filetype=diff %{
 
 # X11 (copy/paste)
 # ===============
-map global user y 'y<a-|>xclip -selection c<ret>' -docstring 'copy to X clipboard'
-map global user p '!xclip -selection c -o<ret>' -docstring 'paste from X clipboard'
+map global user y 'y<a-|>xclip -selection primary<ret>' -docstring 'copy to X primary'
+map global user p '!xclip -selection primary -o<ret>'   -docstring 'paste from X primary'
+
+declare-user-mode xclip-yank
+def -hidden xclip-yank %{ enter-user-mode xclip-yank }
+map global user Y :xclip-yank<ret> -docstring 'prefix for xclip-yank subcommands'
+
+map global xclip-yank c 'y<a-|>xclip -selection clipboard<ret>' -docstring 'yank to clipboard'
+map global xclip-yank p 'y<a-|>xclip -selection primary<ret>'   -docstring 'yank to primary'
+map global xclip-yank s 'y<a-|>xclip -selection secondary<ret>' -docstring 'yank to secondary'
+
+declare-user-mode xclip-paste
+def -hidden xclip-paste %{ enter-user-mode xclip-paste }
+map global user P :xclip-paste<ret> -docstring 'prefix for xclip-paste subcommands'
+
+map global xclip-paste c '!xclip -o -selection clipboard<ret>' -docstring 'paste from clipboard'
+map global xclip-paste p '!xclip -o -selection primary<ret>'   -docstring 'paste from primary'
+map global xclip-paste s '!xclip -o -selection secondary<ret>' -docstring 'paste from secondary'
 
 # commenting
 declare-user-mode commenting
