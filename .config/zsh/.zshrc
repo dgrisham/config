@@ -22,7 +22,7 @@ git_branch_prompt() {
 autoload -U colors && colors
 setopt prompt_subst
 PS1="\$(wenv_prompt)
-%F{95}%n%F{238}@%F{94}%M%F{238}:%F{166}%~%f\$(git_branch_prompt)
+%F{89}%n%F{252}@%F{245}%M%F{252}:%F{227}%~%f\$(git_branch_prompt)
 $%b "
 # 94
 # %F{89}%n%F{252}@%F{245}%M:%F{227}%~%f\$(git_branch_prompt)

@@ -1,2 +1,0 @@
-#!/bin/sh
-exec /usr/local/bin/mpdas >/dev/null 2>&1

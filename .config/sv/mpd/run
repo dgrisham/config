@@ -1,4 +1,0 @@
-#!/bin/sh
-
-export ALSA_CONFIG_PATH=/usr/share/alsa/alsa.conf:/var/lib/bmix/bmix.conf
-exec mpd --no-daemon ${XDG_CONFIG_HOME:-$HOME/.config}/mpd/mpd.conf

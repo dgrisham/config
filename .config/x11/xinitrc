@@ -40,6 +40,7 @@ unclutter -idle 1 -root &
 
 setxkbmap -option caps:ctrl_modifier
 $HOME/bin/fehbg
+systemctl --user start mpdas
 
 # laptop
 # sudo brightnessctl s 96000
