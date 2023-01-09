@@ -20,7 +20,6 @@ export SCRATCH="$HOME/scratch"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_CONFIG_HOME="$HOME/.config"
 export XDG_CACHE_HOME="$HOME/.cache"
-export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_DOWNLOAD_DIR="$DOWNLOADS"
 export XDG_DESKTOP_DIR="/dev/null"
 
@@ -73,3 +72,6 @@ export SKIM_DEFAULT_COMMAND="find . -type f ! -path '*/\.git/*' ! -path '*/\node
 export LF_COLORS="di=37:su=37:"
 
 export COLUMNS="120"
+
+# move mpv so it doesn't dirty up ~/.config/mpv
+export MPV_HOME="$HOME/.local/state/mpv"
