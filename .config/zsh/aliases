@@ -40,7 +40,37 @@ loop() {
     while sleep "$time"; do clear; $@; done
 }
 
-alias usv='SVDIR=$USER_SVDIR sv'
+rmlink(){ [ -L "$1" ] && rm -v "$1" }
+
+usv_enable() {
+    [ -z "$1" ] && { echo "missing service arg" >&2; return 1 }
+    [ -d "$USER_SVDIR/$1" ] || { echo "no such service '$1'" >&2; return 1 }
+    [ -L "$USER_SVDIR/enabled/$1" ] && { echo "service '$1' is already enabled" >&2; return 1 }
+    echo ln -s "../$1" "$USER_SVDIR/enabled/"
+    ln -s "../$1" "$USER_SVDIR/enabled/"
+}
+__usv() {
+    case "$1" in
+        'enable')
+            shift
+            # expand the $@ args into an array here, handling globs/multiple service names/etc.
+            # the `perl` command prefixes every wenv with $XDG_CONFIG_HOME/sv so we can expand based on what's in that directory,
+            # while the `eval echo` handles the actual expansion
+            local service_dirs=($(eval echo $(perl -pe "s|([^ ]+)|$XDG_CONFIG_HOME/sv/\1|g" <<< $@)))
+            for s in $service_dirs; do usv_enable $(basename $s); done
+            ;;
+        'disable')
+            shift
+            local enabled_services=($(eval echo $(perl -pe "s|([^ ]+)|$XDG_CONFIG_HOME/sv/enabled/\1|g" <<< $@)))
+            for s in $enabled_services; do rmlink $s; done
+            ;;
+        *)
+            SVDIR=$USER_SVDIR sv $@
+            ;;
+    esac
+}
+alias usv='noglob __usv'
+
 alias tm="tmux attach"
 alias kak='kak_session'
 alias apv='mpv --vid=no'
