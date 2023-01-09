@@ -139,8 +139,8 @@ hook global WinSetOption filetype=diff %{
 
 # X11 (copy/paste)
 # ===============
-map global user y 'y<a-|>xclip -selection primary<ret>' -docstring 'copy to X primary'
-map global user p '!xclip -selection primary -o<ret>'   -docstring 'paste from X primary'
+map global user y 'y<a-|>xclip -selection clipboard<ret>' -docstring 'copy to X clipboard'
+map global user p '!xclip -selection clipboard -o<ret>'   -docstring 'paste from X clipboard'
 
 declare-user-mode xclip-yank
 def -hidden xclip-yank %{ enter-user-mode xclip-yank }
@@ -219,8 +219,8 @@ hook global BufSetOption filetype=(markdown|latex) %{
     def header %{
         on-key %{ evaluate-commands %sh{
             case "$kak_key" in
-                '1') echo 'exec hxypjxHr=A<ret><esc>' ;;
-                '2') echo 'exec hxypjxHr-A<ret><esc>' ;;
+                '1') echo 'exec hxypxHr=A<ret><esc>' ;;
+                '2') echo 'exec hxypxHr-A<ret><esc>' ;;
                 '3') echo 'exec I###<space><esc>A<ret><esc>' ;;
             esac
         } }
