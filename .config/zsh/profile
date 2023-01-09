@@ -32,7 +32,8 @@ export ZDOTDIR="$XDG_CONFIG_HOME/zsh"
 # Defaults
 export EDITOR=kak_session
 export VISUAL="$EDITOR"
-export BROWSER="tabbed -c -r2 surf -e x -SN"
+# export BROWSER="tabbed -c -r2 surf -e x -SN"
+export BROWSER="brave"
 
 export USER_SVDIR=$XDG_CONFIG_HOME/sv
 
