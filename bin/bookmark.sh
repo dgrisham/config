@@ -25,7 +25,7 @@ mkdir -p "$bookmarks_dir"
 bookmark_file="${bookmarks_dir}/bookmarks"
 touch "$bookmark_file"
 
-if grep -q "^$bookmark" "$bookmark_file"; then
+if grep -q "^$bookmark"'$\|'"$bookmark " "$bookmark_file"; then
     notify-send "Already bookmarked in '$directory'"
 else
     echo "$bookmark${tags:+ # $tags}" >>"$bookmark_file"
