@@ -14,8 +14,11 @@ cmd open ${{
     ext=${fname##*.}
     # try matching file extension first
     case "$ext" in
-        'pdf')
+        pdf)
             zathura "$fx" &
+            ;;
+        png|jpg|jpeg|webp)
+            feh -x. "$fx" &
             ;;
         *)
             cd "$OLDPWD" && "$EDITOR" "$fx"
