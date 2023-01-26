@@ -26,6 +26,7 @@ bin/sk
 .config/kak/autoload/autoload
 .config/kak/plugins/
 .config/jellyfin*
+.config/.jira
 .config/lazygit/state.yml
 .config/mpd/database
 .config/mpd/log
