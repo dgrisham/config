@@ -17,11 +17,13 @@ bin/sk
 .config/SlippiOnline/
 .config/beets/library.blb
 .config/beets/state.pickle
+.config/cef_user_data/
 .config/chromium/
 .config/configstore/
 .config/dconf/
 .config/discord/
 .config/fontforge/
+.config/gtk-2.0/
 .config/htop/
 .config/kak/autoload/autoload
 .config/kak/plugins/
@@ -36,6 +38,7 @@ bin/sk
 .config/mpd/sticker.sql
 .config/msmtp/
 .config/mutt/
+.config/newsboat/urls
 .config/pavucontrol.ini
 .config/rtorrent
 .config/pulse/

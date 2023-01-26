@@ -1,0 +1,39 @@
+# general settings
+auto-reload yes
+max-items 50
+
+# externel browser
+browser "/usr/bin/brave %u"
+macro m set browser "/usr/bin/mpv %u"; open-in-browser ; set browser "/usr/local/bin/w3m %u"
+macro l set browser "/usr/local/bin/surf %u"; open-in-browser ; set browser "/usr/local/bin/w3m %u"
+
+# unbind keys
+unbind-key ENTER
+unbind-key j
+unbind-key k
+unbind-key u
+unbind-key d
+
+# bind keys - vim style
+bind-key j down
+bind-key k up
+bind-key d pagedown
+bind-key u pageup
+bind-key l open
+bind-key h quit
+
+# solarized
+color background         default   default
+color listnormal         default   default
+color listnormal_unread  default   default
+color listfocus          black     white
+color listfocus_unread   black     white
+color info               default   black
+color article            default   default
+
+# highlights
+highlight article "^(Title):.*$" yellow default
+highlight article "https?://[^ ]+" cyan default
+highlight article "\\[image\\ [0-9]+\\]" green default
+
+datetime-format "[%m %b %Y]"
