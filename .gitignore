@@ -47,6 +47,7 @@ bin/sk
 .config/sv/enabled
 .config/wenv/
 .config/VirtualBox/
+.config/zoom.conf
 .config/zoomus.conf
 .config/zsh/.zcompdump
 .config/zsh/history
