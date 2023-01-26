@@ -1,0 +1,84 @@
+#!/usr/bin/env zsh
+
+wenv_def() {
+    WENV_DIR="/home/grish"
+    WENV_DEPS=()
+    WENV_EXTENSIONS=('c')
+
+    startup_wenv() {
+        # seems to need to happen every boot, so just run
+        # whenever we start the wenv
+        reset_bluetooth_module
+    }
+    shutdown_wenv() {}
+    bootstrap_wenv() {}
+}
+
+# for c extension
+# declare -Ag wenv_dirs=()
+
+# for edit extension
+# declare -Ag wenv_files=()
+
+declare -Ag bt_devices=()
+bt_devices[airpods]='28:F0:33:6B:E7:56'
+bt_devices[momentum]='00:1B:66:E9:AD:3B'
+
+alias bt=bluetoothctl
+
+bluetooth_connect() {
+    [ "${bt_devices[$1]+0}" ] || { echo "no entry '$1'" >&2 ; return 1 }
+    local device_id="${bt_devices[$1]}"
+    bluetoothctl power on
+    bluetoothctl connect "$device_id"
+}
+alias btc=bluetooth_connect
+
+bluetooth_disconnect() {
+    [ "${bt_devices[$1]+0}" ] || { echo "no entry '$1'" >&2 ; return 1 }
+    local device_id="${bt_devices[$1]}"
+    bluetoothctl power on
+    bluetoothctl disconnect "$device_id"
+}
+alias btd=bluetooth_disconnect
+
+_bluetooth_connect() {
+    COMPREPLY=()
+    complete +o default
+
+    local word="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    if (( COMP_CWORD == 1 )) && [[ ${word} == -* ]]; then
+        COMPREPLY=( $(compgen -W "-r -h" -- ${word}) )
+    elif (( COMP_CWORD == 1 )) || { ((COMP_CWORD == 2 )) && [[ ${prev} == -* ]]; }; then
+        local opts="${(k)bt_devices[@]}"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${word}) )
+    fi
+}
+complete -F _bluetooth_connect bluetooth_connect
+
+_bluetooth_disconnect() {
+    COMPREPLY=()
+    complete +o default
+
+    local word="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    if (( COMP_CWORD == 1 )) && [[ ${word} == -* ]]; then
+        COMPREPLY=( $(compgen -W "-r -h" -- ${word}) )
+    elif (( COMP_CWORD == 1 )) || { ((COMP_CWORD == 2 )) && [[ ${prev} == -* ]]; }; then
+        local opts="${(k)bt_devices[@]}"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${word}) )
+    fi
+}
+complete -F _bluetooth_disconnect bluetooth_disconnect
+
+reset_bluetooth_module() {
+    set -x
+    sudo rmmod btusb ; sudo modprobe btusb
+    sudo sv restart bluetoothd
+    set +x
+    # sudo systemctl restart bluetooth
+}
+alias rbm=reset_bluetooth_module
