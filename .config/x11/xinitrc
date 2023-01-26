@@ -36,7 +36,7 @@ sudo brightnessctl s 96000
 setxkbmap -option caps:ctrl_modifier
 
 # hide mouse cursor after 1 second of inactivity
-unclutter -idle 1 -root &
+unclutter --timeout 1 --fork
 
 dunst &
 
