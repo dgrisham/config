@@ -5,7 +5,7 @@ data_dir="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 selection="$(xclip -o -selection primary)"
 [[ -z "$selection" ]] && selection="$(xclip -selection c -o)"
-[[ -z "$selection" ]] && { herbe "Selection is empty" ; return 1 ; }
+[[ -z "$selection" ]] && { herbe "Selection is empty" ; exit 1 ; }
 
 bookmark="$(echo "$selection" | dmenu -e -u -p 'bookmark: ')"
 [[ -z "$bookmark" ]] && exit 1
