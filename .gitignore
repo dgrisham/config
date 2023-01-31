@@ -15,6 +15,7 @@
 .config/kak/autoload/autoload
 .config/kak/plugins/
 .config/jellyfin-mpv-shim/
+.config/lazygit/state.yml
 .config/mpd/database
 .config/mpd/log
 .config/mpd/pid
