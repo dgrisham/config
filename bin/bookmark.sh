@@ -26,8 +26,8 @@ bookmark_file="${bookmarks_dir}/bookmarks"
 touch "$bookmark_file"
 
 if grep -q "^$bookmark"'$\|'"$bookmark " "$bookmark_file"; then
-    notify-send "Already bookmarked in '$directory'"
+    herbe "Already bookmarked in '$directory'"
 else
     echo "$bookmark${tags:+ # $tags}" >>"$bookmark_file"
-    notify-send "Successfully added bookmark to '$directory':" "$bookmark_display"
+    herbe "Successfully added bookmark to '$directory': $bookmark_display"
 fi
