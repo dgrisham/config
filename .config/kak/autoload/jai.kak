@@ -21,7 +21,7 @@ hook global WinSetOption filetype=jai %{
     set-option window comment_block_end '*/'
 
     # cleanup trailing whitespaces when exiting insert mode
-    hook window ModeChange pop:insert:.* -group jai-trim-indent %{ try %{ execute-keys -draft <a-x>s^\h+$<ret>d } }
+    hook window ModeChange pop:insert:.* -group jai-trim-indent %{ try %{ execute-keys -draft xs^\h+$<ret>d } }
     hook window InsertChar \n -group jai-indent jai-indent-on-new-line
     hook window InsertChar \{ -group jai-indent jai-indent-on-opening-curly-brace
     hook window InsertChar \} -group jai-indent jai-indent-on-closing-curly-brace
@@ -81,18 +81,22 @@ define-command -hidden jai-indent-on-new-line %~
     evaluate-commands -draft -itersel %=
         # preserve previous line indent
         try %{ execute-keys -draft <semicolon>K<a-&> }
-        # indent after lines ending with { or (
-        try %[ execute-keys -draft k<a-x> <a-k> [{(]\h*$ <ret> j<a-gt> ]
         # cleanup trailing white spaces on the previous line
-        try %{ execute-keys -draft k<a-x> s \h+$ <ret>d }
-        # align to opening paren of previous line
-        try %{ execute-keys -draft [( <a-k> \A\([^\n]+\n[^\n]*\n?\z <ret> s \A\(\h*.|.\z <ret> '<a-;>' & }
-        # copy // comments prefix
-        try %{ execute-keys -draft <semicolon><c-s>k<a-x> s ^\h*\K/{2,} <ret> y<c-o>P<esc> }
-        # indent after a switch's case/default statements
-        try %[ execute-keys -draft k<a-x> <a-k> ^\h*(case|default).*:$ <ret> j<a-gt> ]
-        # deindent closing brace(s) when after cursor
-        try %[ execute-keys -draft <a-x> <a-k> ^\h*[})] <ret> gh / [})] <ret> m <a-S> 1<a-&> ]
+        try %{ execute-keys -draft kx s \h+$ <ret>d }
+        try %{
+            try %{ # line comment
+                execute-keys -draft kx s ^\h*// <ret>
+            } catch %{ # block comment
+                execute-keys -draft <a-?> /\* <ret> <a-K>\*/<ret>
+            }
+        } catch %{
+            # indent after lines with an unclosed { or (
+            try %< execute-keys -draft [c[({],[)}] <ret> <a-k> \A[({][^\n]*\n[^\n]*\n?\z <ret> j<a-gt> >
+            # indent after a switch's case/default statements
+            try %[ execute-keys -draft kx <a-k> ^\h*(case|default).*:$ <ret> j<a-gt> ]
+            # deindent closing brace(s) when after cursor
+            try %[ execute-keys -draft x <a-k> ^\h*[})] <ret> gh / [})] <ret> m <a-S> 1<a-&> ]
+        }
     =
 ~
 
@@ -106,19 +110,33 @@ define-command -hidden jai-indent-on-closing-curly-brace %[
     try %[ execute-keys -itersel -draft <a-h><a-k>^\h+\}$<ret>hms\A|.\z<ret>1<a-&> ]
 ]
 
-define-command -hidden jai-insert-on-new-line %[
+define-command -hidden jai-insert-closing-delimiter-on-new-line %[
     evaluate-commands -no-hooks -draft -itersel %[
         # Wisely add '}'.
         evaluate-commands -save-regs x %[
             # Save previous line indent in register x.
-            try %[ execute-keys -draft k<a-x>s^\h+<ret>"xy ] catch %[ reg x '' ]
+            try %[ execute-keys -draft kxs^\h+<ret>"xy ] catch %[ reg x '' ]
             try %[
                 # Validate previous line and that it is not closed yet.
-                execute-keys -draft k<a-x> <a-k>^<c-r>x.*\{\h*\(?\h*$<ret> j}iJ<a-x> <a-K>^<c-r>x\)?\h*\}<ret>
+                execute-keys -draft kx <a-k>^<c-r>x.*\{\h*\(?\h*$<ret> j}iJx <a-K>^<c-r>x\)?\h*\}<ret>
                 # Insert closing '}'.
                 execute-keys -draft o<c-r>x}<esc>
                 # Delete trailing '}' on the line below the '{'.
-                execute-keys -draft Xs\}$<ret>d
+                execute-keys -draft xs\}$<ret>d
+            ]
+        ]
+
+        # Wisely add ')'.
+        evaluate-commands -save-regs x %[
+            # Save previous line indent in register x.
+            try %[ execute-keys -draft kxs^\h+<ret>"xy ] catch %[ reg x '' ]
+            try %[
+                # Validate previous line and that it is not closed yet.
+                execute-keys -draft kx <a-k>^<c-r>x.*\(\h*$<ret> J}iJx <a-K>^<c-r>x\)<ret>
+                # Insert closing ')'.
+                execute-keys -draft o<c-r>x)<esc>
+                # Delete trailing ')' on the line below the '('.
+                execute-keys -draft xs\)\h*\}?\h*$<ret>d
             ]
         ]
     ]
