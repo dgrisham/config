@@ -1,18 +1,18 @@
 #!/usr/bin/env zsh
 
-wenv_def() {
-    WENV_DIR="/home/grish"
-    WENV_DEPS=()
-    WENV_EXTENSIONS=('c')
+wenv_dir="/home/grish"
+wenv_deps=()
+wenv_extensions=('c')
 
-    startup_wenv() {
-        # seems to need to happen every boot, so just run
-        # whenever we start the wenv
-        reset_bluetooth_module
-    }
-    shutdown_wenv() {}
-    bootstrap_wenv() {}
+startup_wenv() {
+    # seems to need to happen every boot, so just run
+    # whenever we start the wenv
+    # reset_bluetooth_module
 }
+shutdown_wenv() {}
+bootstrap_wenv() {}
+
+((only_load_wenv_vars == 1)) && return 0
 
 # for c extension
 # declare -Ag wenv_dirs=()
@@ -21,7 +21,8 @@ wenv_def() {
 # declare -Ag wenv_files=()
 
 declare -Ag bt_devices=()
-bt_devices[airpods]='28:F0:33:6B:E7:56'
+# bt_devices[airpods]='28:F0:33:6B:E7:56'
+bt_devices[audio-technica]='74:45:CE:BE:38:50'
 bt_devices[momentum]='00:1B:66:E9:AD:3B'
 
 alias bt=bluetoothctl
