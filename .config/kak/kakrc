@@ -8,7 +8,7 @@ map global normal , <space>
 ## Hooks
 
 # (case-insensitive) search
-map global user / '/(?i)' -docstring 'case-insensitive search'
+# map global user / '/(?i)' -docstring 'case-insensitive search'
 # map global user S 'S(?i)'
 
 map global user > 'i▸<esc>' -docstring 'insert ▸'
@@ -31,12 +31,12 @@ hook global WinCreate .*[.](md|tex|rst) %{
 }
 
 declare-user-mode fmt
-map global fmt g '"ZZ<a-a>p|fmt --width 120 --goal 120<ret>;"Zz' -docstring 'Wrap current paragraph to 120 characters'
-map global fmt G 'S\n\n+<ret>|fmt --width 120 --goal 120<ret>' -docstring 'Wrap selected block of paragraphs to 120 characters'
+map global fmt f '"ZZ<a-a>p|fmt --width 120 --goal 120<ret>;"Zz' -docstring 'Wrap current paragraph to 120 characters'
+map global fmt F 'S\n\n+<ret>|fmt --width 120 --goal 120<ret>' -docstring 'Wrap selected block of paragraphs to 120 characters'
 map global fmt c '"ZZ<a-i>p<a-j><a-h>;' -docstring 'Collapse current paragraph to one line'
 map global fmt C 'S\n\n+<ret><a-i>p<a-j>' -docstring 'Collapse selected paragraphs to one line'
 def -hidden fmt %{ enter-user-mode fmt }
-map global user g :fmt<ret> -docstring 'paragraph formatting subcommands'
+map global user f :fmt<ret> -docstring 'paragraph formatting subcommands'
 
 # add brackets highlighting
 hook global KakBegin .* %{addhl global/ show-matching}
@@ -173,14 +173,34 @@ hook global BufSetOption filetype=python %!
     map global user d 'iprint(f": {}")<esc>h<a-a>bs(?=[:}])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
 !
 
-hook global BufSetOption filetype=go %!
+hook global BufSetOption filetype=go %@
+    hook global KakBegin .* %{
+        evaluate-commands %sh{
+            path="$PWD"
+            while [ "$path" != "$HOME" ] && [ "$path" != "/" ]; do
+                if [ -e "./tags" ]; then
+                    printf "%s\n" "set-option -add current ctagsfiles %{$path/tags}"
+                    break
+                else
+                    cd ..
+                    path="$PWD"
+                fi
+            done
+        }
+    }
+    map global normal <c-t> <a-i>w:ctags-search<ret> -docstring 'ctags search'
+
+    map global user i ':nop %sh{ goimports -e -w "$kak_buffile" }<ret>' -docstring 'run goimports on this buffer'
+    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile"; gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
+
     declare-user-mode write-code-template
     map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
     map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
     map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
-!
+@
 
 hook global BufSetOption filetype=javascript %!
     map global user d 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
@@ -283,11 +303,6 @@ map global user h :git-blame-hover<ret> -docstring 'git blame hover'
 
 # Formatting
 # ----------
-
-hook global WinSetOption filetype=go %{
-    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ gofumports -e -w "$kak_buffile" }; edit! }
-    map global user g :go-format<ret> -docstring 'format'
-}
 
 hook global WinSetOption filetype=python %{
     hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ black "$kak_buffile" }; edit! }
