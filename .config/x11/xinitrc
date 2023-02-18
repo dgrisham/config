@@ -38,10 +38,11 @@ setxkbmap -option caps:ctrl_modifier
 # hide mouse cursor after 1 second of inactivity
 unclutter --timeout 1 --fork
 
-dunst &
+xrandr | grep '^DP-[0-9]-[0-9] connected' && $HOME/.screenlayout/office.sh
 
-xrandr | grep '^DP-[0-9] connected' && $HOME/bin/external-on-left.sh
 $HOME/bin/fehbg
+
+sudo dhcpcd
 wifi connect &
 
 exec dwm
