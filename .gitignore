@@ -65,6 +65,7 @@ bin/sk
 .kube/
 .local/
 .mbsyncrc
+.minikube/
 .mongodb
 .mpdascache
 .mozilla
