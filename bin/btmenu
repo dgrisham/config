@@ -1,0 +1,53 @@
+#!/bin/zsh
+
+export DISPLAY=:0
+
+source $WENV_CFG/wenvs/bluetooth
+
+card=$(pactl list cards short | grep -oP 'bluez_card\.[\w]+')
+local dmenu_prompt
+if [[ -n "$card" ]]; then
+    connected_device_mac=$(pactl --format=json list cards | jq -r '.[] | select(.name=="'$card'") | .properties."device.string"')
+    connected_device_name=${(k)bt_devices[(r)$connected_device_mac]}
+    dmenu_prompt="action ($connected_device_name):"
+else
+    dmenu_prompt='action: '
+fi
+
+cmd=$(printf 'connect\ndisconnect\nset-profile\nreconnect' | dmenu -p "$dmenu_prompt")
+[[ -z "$cmd" ]] && exit 1
+
+case $cmd in
+    connect)
+        device=$(echo ${(@k)bt_devices} | tr ' ' '\n' | dmenu -p 'bluetooth device: ')
+        [[ -z "$device" ]] && exit 1
+
+        bluetoothctl power on
+        bluetooth_connect $device || { herbe "Failed to connect to bluetooth device '$device'"; exit 1; }
+        herbe "Connected to $device"
+        ;;
+    disconnect)
+        connected_device=$(bluetoothctl devices Connected | awk '{print $2}')
+        [[ -z "$connected_device" ]] && { herbe "No bluetooth device currently connected"; exit 1; }
+
+        bluetoothctl disconnect $connected_device || { herbe "Failed to disconnect from bluetooth device '$connected_device'"; exit 1; }
+        herbe "Disconnected from $connected_device"
+        ;;
+    reconnect)
+        connected_device=$(bluetoothctl devices Connected | awk '{print $2}')
+        [[ -z "$connected_device" ]] && { herbe "No bluetooth device currently connected"; exit 1; }
+
+        { bluetoothctl disconnect $connected_device && bluetoothctl connect $connected_device } || { herbe "Failed to reconnect to bluetooth device '$connected_device'"; exit 1; }
+        herbe "Reconnected to $connected_device"
+        ;;
+    set-profile)
+        [[ -z "$card" ]] && herbe "Failed to find active bluez card"
+
+        active_profile=$(pactl --format=json list cards | jq -r '.[] | select(.name=="'$card'") | .active_profile')
+
+        target_profile=$(pactl --format=json list cards | jq -r '.[] | select(.name=="'$card'") | .profiles | keys[]' | dmenu -p "profile ($active_profile): ")
+        [[ -z "$target_profile" ]] && exit 1
+
+        pactl set-card-profile $card $target_profile || { herbe "Failed to set profile to $target_profile for $card"; exit 1; }
+        ;;
+esac
