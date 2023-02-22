@@ -8,8 +8,8 @@ map global normal , <space>
 ## Hooks
 
 # (case-insensitive) search
-# map global user / '/(?i)' -docstring 'case-insensitive search'
-# map global user S 'S(?i)'
+map global user / '/(?i)' -docstring 'case-insensitive search'
+map global user S 'S(?i)'
 
 map global user > 'i▸<esc>' -docstring 'insert ▸'
 
