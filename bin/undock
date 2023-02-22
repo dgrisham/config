@@ -1,0 +1,7 @@
+#!/bin/sh
+
+~/.screenlayout/disconnected.sh
+~/bin/fehbg
+
+sudo dhcpcd -k
+~/bin/wifi connect

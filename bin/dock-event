@@ -1,0 +1,3 @@
+#!/bin/sh
+
+if lsusb | grep 'Anker USB-C Docking Device'; then $HOME/bin/dock; else $HOME/bin/undock; fi
