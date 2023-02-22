@@ -2,27 +2,12 @@
 
 export DISPLAY=:0
 
-cmd=$(printf 'office\ndisconnect' | dmenu -p 'action: ')
-[[ -z "$cmd" ]] && exit 1
+layouts_dir="$HOME/.screenlayout"
 
-case $cmd in
-    office)
-        $HOME/.screenlayout/office.sh
-        ;;
-    disconnect)
-        xrandr --output eDP-1 --mode 2256x1504 --primary\
-               --output DP-1   --off \
-               --output DP-2   --off \
-               --output DP-3   --off \
-               --output DP-4   --off \
-               --output DP-3-1 --off \
-               --output DP-3-2 --off \
-               --output DP-3-3 --off
-        ;;
-    *)
-        herbe "Invalid command '$cmd'"
-        exit 1
-        ;;
-esac
+layout=$(find $HOME/.screenlayout -name '*.sh' -execdir basename -s '.sh' {} + | dmenu -p 'action: ')
+layout_script="$layouts_dir/${layout}.sh"
+[[ ! -f "$layout_script" ]] && { herbe "Invalid layout '$layout'"; exit 1 }
+
+exec $layout_script
 
 $HOME/bin/fehbg
