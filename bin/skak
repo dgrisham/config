@@ -2,15 +2,39 @@
 
 skag() {
     local ag_args
-   (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
-   alias_call sk -m --ansi -i -c 'ag '"$ag_args"' --color "{}"  --hidden --ignore node_modules --ignore .git'
+    (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
+    alias_call sk --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
 }
 
-while getopts ":h" opt; do
+skag_s() {
+    local query=''
+    while getopts ":q:" opt; do
+        case "$opt" in
+            q)
+                query="$OPTARG"
+                shift 2
+                ;;
+        esac
+    done
+
+    local ag_args
+    (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
+    if [[ -z "$query" ]]; then
+        alias_call sk --print-cmd --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
+    else
+        alias_call sk --cmd-query "$query" --print-cmd --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
+    fi
+}
+
+local flag_r=0
+while getopts ":hr" opt; do
     case "$opt" in
         h)
-            echo "usage: skak [-h]"
+            echo "usage: skak [-hr]"
             return 0
+            ;;
+        r)
+            flag_r=1
             ;;
         \?)
             echo "unknown option: -$OPTARG" >&2
@@ -20,6 +44,15 @@ while getopts ":h" opt; do
 done
 shift $((OPTIND-1))
 
-local target=$(skag $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
-[[ -z "$target" ]] && return 1
-eval $EDITOR $target
+if ((flag_r == 1)); then
+    local query=''
+    while true; do
+        IFS=$'\n' read -d '\n\n' -r query target <<< "$(skag_s -q "$query" $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')"
+        [[ -z "$target" ]] && return 1
+        eval $EDITOR $target
+    done
+else
+    local target=$(skag $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
+    [[ -z "$target" ]] && return 1
+    eval $EDITOR $target
+fi
