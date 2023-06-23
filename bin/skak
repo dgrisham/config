@@ -45,12 +45,14 @@ done
 shift $((OPTIND-1))
 
 if ((flag_r == 1)); then
+    set -x
     local query=''
     while true; do
-        IFS=$'\n' read -d '\n\n' -r query target <<< "$(skag_s -q "$query" $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')"
+        IFS=$'\n' read -r -d '' query target <<< $(skag_s -q "$query" $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
         [[ -z "$target" ]] && return 1
         eval $EDITOR $target
     done
+    set +x
 else
     local target=$(skag $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
     [[ -z "$target" ]] && return 1
