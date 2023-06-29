@@ -1,58 +1,9 @@
 #!/usr/bin/env zsh
 
-skag() {
-    local ag_args
-    (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
-    alias_call sk --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
-}
-
-skag_s() {
-    local query=''
-    while getopts ":q:" opt; do
-        case "$opt" in
-            q)
-                query="$OPTARG"
-                shift 2
-                ;;
-        esac
-    done
-
-    local ag_args
-    (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
-    if [[ -z "$query" ]]; then
-        alias_call sk --print-cmd --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
-    else
-        alias_call sk --cmd-query "$query" --print-cmd --multi --ansi --interactive --cmd 'ag '"$ag_args"' --color "{}" --hidden --ignore node_modules --ignore .git'
-    fi
-}
-
-local flag_r=0
-while getopts ":hr" opt; do
-    case "$opt" in
-        h)
-            echo "usage: skak [-hr]"
-            return 0
-            ;;
-        r)
-            flag_r=1
-            ;;
-        \?)
-            echo "unknown option: -$OPTARG" >&2
-            return 1
-            ;;
-    esac
-done
-shift $((OPTIND-1))
-
-if ((flag_r == 1)); then
-    local query=''
-    while true; do
-        IFS=$'\n' read -r -d '' query target <<< $(skag_s -q "$query" $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
-        [[ -z "$target" ]] && return 1
-        eval $EDITOR $target
-    done
-else
-    local target=$(skag $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
-    [[ -z "$target" ]] && return 1
-    eval $EDITOR $target
-fi
+export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git'
+fzf --ansi --disabled \
+    --delimiter : \
+    --query "$*" \
+    --bind "start:reload:$AG_PREFIX {q} || true" \
+    --bind "change:reload:$AG_PREFIX {q} || true" \
+    --bind "enter:execute($EDITOR {1} +{2})+reload:$AG_PREFIX {q} || true"

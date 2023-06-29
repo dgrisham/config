@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+feh -x. $HOME/media/pictures/screenshots/*(om)

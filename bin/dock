@@ -5,5 +5,5 @@
 
 setxkbmap -option caps:ctrl_modifier
 
-~/bin/wifi disconnect
-sudo dhcpcd
+#~/bin/wifi disconnect
+#sudo dhcpcd

@@ -83,7 +83,7 @@ wifi_scan() {
 wifi_menu() {
     sudo ip link set "$wifi_card" up
     local aps=$(wifi_scan)
-    wifi_new "$(sk <<<$aps)" $@
+    wifi_new "$(fzf <<<$aps)" $@
 }
 
 # interface

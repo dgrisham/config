@@ -12,7 +12,7 @@ alias lta="ls -lrtAh"
 # -------------
 chpwd() { ll }            # cd and ls
 mc() { mv $@ && ${(P)#} } # mv and cd
-cc() { cp $@ && ${(P)#} } # cp and cd
+# cc() { cp $@ && ${(P)#} } # cp and cd
 
 # compression
 # -----------
@@ -78,6 +78,7 @@ alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
 alias fd='/usr/bin/fd --hidden'
 alias ag="/usr/local/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git"
+alias lg=lazygit
 
 # curl with status code
 alias scurl='curl -w "%{http_code}"'
@@ -151,16 +152,6 @@ edit_week() {
     $EDITOR "`date -d$which_monday +$format`.md"
 }
 alias ew='edit_week'
-
-# copy etc
-# --------
-cp_etc() {
-    local dir="$1"
-    [[ ! -d "$DOTFILES/etc/$dir" ]] && return 1
-    for file in $(find "$DOTFILES/etc/$dir" -type f); do
-        sudo cp "$file" "${file#$DOTFILES}"
-    done
-}
 
 # Don't forget
 # ------------

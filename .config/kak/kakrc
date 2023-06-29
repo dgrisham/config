@@ -62,7 +62,7 @@ hook global BufSetOption filetype=.*?(haskell|ruby|yaml|html|css) %{
     set buffer indentwidth 2
 }
 # # soft tabs (excluding makefiles and Go)
-hook global BufSetOption filetype=(?!go)(?!makefile)(?!c).* %{
+hook global BufSetOption filetype=(?!go)(?!makefile).* %{
     hook buffer InsertChar \t %{ exec -draft -itersel h@ }
 }
 

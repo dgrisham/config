@@ -64,8 +64,16 @@ export TEXMFHOME="$XDG_CONFIG_HOME/texmf"
 # pass settings
 export PASSWORD_STORE_CLIP_TIME=1000000000
 
+# fzf
+export FZF_DEFAULT_OPTS='
+ --color=fg:#d1d1d1,bg:#0a0909,hl:#d6c22b
+ --color=fg+:#ffffff,bg+:#2a2a2a,hl+:#ebd636
+ --color=info:#bf658c,prompt:#d7005f,pointer:#21c8ff
+ --color=marker:#40bdd6,spinner:#d7005f,header:#87afaf'
+export FZF_DEFAULT_COMMAND="find . -type f ! -path '*/\.git/*' ! -path '*/\node_modules/*'"
+
 # skim
-export SKIM_DEFAULT_OPTIONS='--color=empty,query:255,fg:243,matched:226,current:255,current_match:226,spinner:127,info:33,prompt:248,cursor:255,selected:255'
+export SKIM_DEFAULT_OPTIONS='--no-mouse --color=empty,query:255,fg:243,matched:226,current:255,current_match:226,spinner:127,info:33,prompt:248,cursor:255,selected:255'
 export SKIM_DEFAULT_COMMAND="find . -type f ! -path '*/\.git/*' ! -path '*/\node_modules/*';"
 
 # lf

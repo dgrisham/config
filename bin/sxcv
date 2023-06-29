@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+dir=$(mktemp -p /tmp -d sxiv-XXX)
+file="${@: -1}"
+case $file in
+	*.zip | *.cbz) unzip $file -d $dir ;;
+	*.rar | *.cbr) unrar e $file $dir ;;
+esac > /dev/null
+sxiv "${@:1:-1}" -r $dir
+\rm -r $dir

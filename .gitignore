@@ -23,6 +23,7 @@ bin/sk
 .config/dconf/
 .config/discord/
 .config/fontforge/
+.config/google-chrome/
 .config/gtk-2.0/
 .config/htop/
 .config/kak/autoload/autoload
@@ -92,3 +93,7 @@ media/
 personal/
 scratch/
 src/
+.config/QtProject.conf
+.config/Trolltech.conf
+.java/fonts/20.0.1
+.minecraft

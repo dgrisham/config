@@ -24,6 +24,7 @@ declare -Ag bt_devices=()
 # bt_devices[airpods]='28:F0:33:6B:E7:56'
 bt_devices[audio-technica]='74:45:CE:BE:38:50'
 bt_devices[momentum]='00:1B:66:E9:AD:3B'
+bt_devices[soundbar]='7C:96:D2:92:AD:19'
 
 alias bt=bluetoothctl
 

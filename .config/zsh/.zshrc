@@ -37,13 +37,17 @@ setopt INC_APPEND_HISTORY
 setopt AUTO_CD
 
 # Basic auto/tab complete:
-autoload -U compinit
-zstyle ':completion:*' menu select
-zmodload zsh/complist
+autoload -Uz compinit
 compinit
-_comp_options+=(globdots)		# Include hidden files.
+fpath=($XDG_DATA_HOME/zsh/completions $fpath)
+zstyle ':completion:*' menu select
+# zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' '+l:|=* r:|=*'
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+
+zmodload zsh/complist
+_comp_options+=(globdots) # Include hidden files.
+# bindkey '\t' expand-or-complete-prefix
 # tab-completion in the middle of file + directory names (e.g. 'ownlo' can tab-complete to 'downloads')
-zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
 
 # vi mode
 bindkey -v
@@ -96,10 +100,17 @@ bindkey -s '^o' 'lfcd\n'
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
-# completion stuff (has to be called after syntax highlighting) (NOTE: requires installing this plugin)
+# completion stuff (NOTE: requires installing this plugin)
 source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
+
+# fish-like autosuggestions plugin
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+bindkey '^ ' autosuggest-accept
+# these only work while typing / in 'insert' mode
+bindkey '^f' vi-forward-word # move cursor forward a word, which also has the effect of incremental completion w/ the autosuggestions
+bindkey '^b' vi-backward-word # this doesn't undo any typing/completion, just moves the cursor
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

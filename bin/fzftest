@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+echo "@: $@" >>~/file
+f() {
+    ag --color --hidden --ignore node_modules --ignore .git "$@"
+}
+[[ -z "$@" ]] && return true
+f $@
