@@ -6,6 +6,9 @@ map D ${{
     [ $ans = 'y' ] && rm -rf "$fx"
 }}
 
+map Q quit
+map q
+
 cmd open ${{
     test -L "$f" && f=$(readlink -f "$f")
     fname=$(basename -- "$f")
