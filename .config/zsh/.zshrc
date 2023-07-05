@@ -39,7 +39,7 @@ setopt AUTO_CD
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump"
 
 # Basic auto/tab complete:
-autoload -U compinit
+autoload -Uz compinit
 zstyle ':completion:*' menu select
 zmodload zsh/complist
 compinit

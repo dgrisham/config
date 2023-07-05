@@ -1,25 +1,9 @@
 #!/usr/bin/env zsh
 
-skag() {
-    local ag_args
-   (($# != 0)) && { extensions="$(tr ' ' '|' <<<($@))"; ag_args=('-G' "'.*?$extensions'") }
-   alias_call sk -m --ansi -i -c 'ag '"$ag_args"' --color "{}"  --hidden --ignore node_modules --ignore .git'
-}
-
-while getopts ":h" opt; do
-    case "$opt" in
-        h)
-            echo "usage: skak [-h]"
-            return 0
-            ;;
-        \?)
-            echo "unknown option: -$OPTARG" >&2
-            return 1
-            ;;
-    esac
-done
-shift $((OPTIND-1))
-
-local target=$(skag $@ | perl -pe 's/^(.*?):(\d+):\s*.*?$/\1 +\2/')
-[[ -z "$target" ]] && return 1
-eval $EDITOR $target
+export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git'
+fzf --ansi --disabled \
+    --delimiter : \
+    --query "$*" \
+    --bind "start:reload:$AG_PREFIX {q} || true" \
+    --bind "change:reload:$AG_PREFIX {q} || true" \
+    --bind "enter:execute($EDITOR {1} +{2})+reload:$AG_PREFIX {q} || true"

@@ -166,6 +166,12 @@ hook global BufSetOption filetype=go %!
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
+hook global BufSetOption filetype=c %!
+    declare-user-mode write-code-template
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+!
+
 hook global BufSetOption filetype=javascript %!
     map global user d 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
 !

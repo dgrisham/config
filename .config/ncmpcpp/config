@@ -281,7 +281,7 @@ song_columns_list_format = (50)[256]{t|f:Title} (20)[247]{b} (20)[251]{a} (7f)[2
 ## notifications etc.
 ##
 
-execute_on_song_change = "/home/grish/bin/mnuc"
+# execute_on_song_change = "/home/grish/bin/mnuc"
 
 ##
 ## Note: Custom command that will be executed each time player state

@@ -1,8 +1,14 @@
 #!/usr/bin/env zsh
 
-source "$DOTFILES/zsh/aliases"
 old_md5=""
 new_md5=""
+
+CYAN='\033[0;36m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+becho() { echo "${CYAN}$@${NC}" }
+recho() { echo "${RED}$@${NC}" }
 
 monitor_type="$1" && shift
 

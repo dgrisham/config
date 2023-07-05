@@ -1,3 +1,6 @@
+# why is this always empty
+export DISPLAY=:0
+
 # Terminal
 if [[ $TMUX = "" ]]; then
     export TERM='xterm-256color'
@@ -63,6 +66,7 @@ export BEETSDIR="$XDG_CONFIG_HOME/beets"
 export TEXMFHOME="$XDG_CONFIG_HOME/texmf"
 
 # pass settings
+# export PASSWORD_STORE_DIR=$HOME/src/pass
 export PASSWORD_STORE_CLIP_TIME=1000000000
 
 # skim

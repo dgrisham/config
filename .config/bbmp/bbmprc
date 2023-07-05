@@ -2,4 +2,4 @@ mpd_host = localhost
 mpd_port = 6600
 max_log_size = 100
 mpd_library_directory = ~/media/music/library
-log_level = verbose
+log_level = normal
