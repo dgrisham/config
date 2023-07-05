@@ -69,3 +69,15 @@ Slippi
 .steampath
 .steampid
 .viminfo
+.config/dolphin-emu/DSUClient.ini
+.config/dolphin-emu/Debugger.ini
+.config/dolphin-emu/Dolphin.ini
+.config/dolphin-emu/FreeLook.ini
+.config/dolphin-emu/FreeLookController.ini
+.config/dolphin-emu/GBA.ini
+.config/dolphin-emu/GCKeyNew.ini
+.config/dolphin-emu/GCPadNew.ini
+.config/dolphin-emu/GFX.ini
+.config/dolphin-emu/Logger.ini
+.config/dolphin-emu/Qt.ini
+.config/dolphin-emu/WiimoteNew.ini
