@@ -57,7 +57,7 @@ set global scrolloff 20,0
 set global indentwidth 4
 set global tabstop 4
 ## 2-space tabs for Haskell
-hook global BufSetOption filetype=.*?(haskell|ruby|yaml|html|css) %{
+hook global BufSetOption filetype=.*?(haskell|ruby|yaml|html|css|javascript) %{
     set buffer tabstop 2
     set buffer indentwidth 2
 }
@@ -114,18 +114,19 @@ map global tmux '\'       ':tmux-terminal-horizontal kak -c %val{session}<ret>' 
 map global tmux '<minus>' ':tmux-terminal-vertical   kak -c %val{session}<ret>' -docstring 'vertical split'
 map global tmux c         ':tmux-terminal-window     kak -c %val{session}<ret>' -docstring 'new window'
 
+map global tmux s         ':tmux-terminal-horizontal skak %val{selection}<ret>' -docstring 'new selection'
+
 declare-user-mode tmux-lf
 map global tmux    f         ':enter-user-mode tmux-lf<ret>'                    -docstring 'lf'
 map global tmux-lf '\'       ':tmux-terminal-horizontal zsh -c "lf ; zsh"<ret>' -docstring 'horizontal fzf split'
 map global tmux-lf '<minus>' ':tmux-terminal-vertical   zsh -c "lf ; zsh"<ret>' -docstring 'vertical fzf split'
 map global tmux-lf c         ':tmux-terminal-window     zsh -c "lf ; zsh"<ret>' -docstring 'new fzf window'
 
-
-declare-user-mode tmux-grep
-map global tmux g              ':enter-user-mode tmux-grep<ret>'                -docstring 'grep'
-map global tmux-grep '\'       ':tmux-terminal-horizontal alias_call skak<ret>' -docstring 'horizontal grep split'
-map global tmux-grep '<minus>' ':tmux-terminal-vertical   alias_call skak<ret>' -docstring 'vertical grep split'
-map global tmux-grep c         ':tmux-terminal-window     alias_call skak<ret>' -docstring 'new grep window'
+declare-user-mode tmux-skak
+map global tmux s              ':enter-user-mode tmux-skak<ret>'                     -docstring 'skak'
+map global tmux-skak '\'       ':tmux-terminal-horizontal zsh -c "skak %val{selection}"<ret>' -docstring 'horizontal skak split'
+map global tmux-skak '<minus>' ':tmux-terminal-vertical   zsh -c "skak %val{selection}"<ret>' -docstring 'vertical skak split'
+map global tmux-skak c         ':tmux-terminal-window     zsh -c "skak %val{selection}"<ret>' -docstring 'new skak window'
 
 map global user t :tmux<ret> -docstring 'prefix for tmux subcommands'
 
@@ -198,7 +199,7 @@ hook global BufSetOption filetype=go %@
     map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
     map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
     map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
-    map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 @
 
@@ -208,25 +209,25 @@ hook global BufSetOption filetype=javascript %!
 
 hook global BufSetOption filetype=javascript %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I* <esc>A *<esc>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=jai %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I* <esc>A *<esc>xypI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=yaml %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I# <esc>A #<esc>xypxI<esc><a-l>r#xykP' -docstring 'header comment block'
+    map global write-code-template c 'I# <esc>A #<esc>xyPxI<esc><a-l>r#xykP' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=sql %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I-- <esc>A --<esc>xypHr-jxypj<a-h>r-;' -docstring 'header comment block'
+    map global write-code-template c 'I-- <esc>A --<esc>xyPHr-jxypj<a-h>r-;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
