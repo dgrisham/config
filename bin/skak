@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git'
+export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json"'
 fzf --ansi --disabled \
     --delimiter : \
     --query "$*" \

@@ -27,6 +27,11 @@ becho() { echo '\033[0;36m'$@'\033[0m' }
 gecho() { echo '\033[0;32m'$@'\033[0m' }
 recho() { echo '\033[0;31m'$@'\033[0m' }
 
+set_terminal_title() {
+    printf "\033]2;%s\033\\" "$1";
+}
+alias stt=set_terminal_title
+
 loop() {
     local time=1
     while getopts ":t:h" opt; do
@@ -77,7 +82,7 @@ alias apv='mpv --vid=no'
 alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
 alias fd='/usr/bin/fd --hidden'
-alias ag="/usr/local/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git"
+alias ag="/usr/local/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags"
 alias lg=lazygit
 
 # curl with status code

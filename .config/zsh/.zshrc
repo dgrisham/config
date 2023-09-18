@@ -129,7 +129,7 @@ source $SRC/wenv/wenv
 [[ -n "$WENV" ]] && wenv_exec "$WENV"
 
 # load completions
-for completion_file in $XDG_CONFIG_HOME/zsh/completion/*; do source $completion_file; done
+for completion_file in $XDG_CONFIG_HOME/zsh/completions/*; do source $completion_file; done
 complete _docker_compose docker-compose
 
 [[ -f "$XDG_CONFIG_HOME/zsh/aliases" ]] && source "$XDG_CONFIG_HOME/zsh/aliases"
