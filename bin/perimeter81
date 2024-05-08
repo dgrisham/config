@@ -1,5 +1,3 @@
 #!/bin/sh
 
-BROWSER=brave sudo p81-helper-daemon &
-
-sudo /opt/Perimeter81/perimeter81 --no-sandbox &
+/opt/Perimeter81/perimeter81

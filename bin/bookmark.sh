@@ -7,7 +7,7 @@ selection="$(xclip -o -selection primary)"
 [[ -z "$selection" ]] && selection="$(xclip -selection c -o)"
 [[ -z "$selection" ]] && { herbe "Selection is empty" ; exit 1 ; }
 
-bookmark="$(echo "$selection" | dmenu -e -u -p 'bookmark: ')"
+bookmark="$(echo $selection | dmenu -e -u -p 'bookmark: ')"
 [[ -z "$bookmark" ]] && exit 1
 
 max_length=75
@@ -31,5 +31,7 @@ else
     echo "$bookmark${tags:+ # $tags}" >>"$bookmark_file"
     herbe "Successfully added bookmark to '$directory': $bookmark_display"
     cd $data_dir/bookmarks
-    git add $directory && git commit -m "adding $bookmark" && git push origin master
+    if ! { git pull && git add $directory && git commit -m "adding $bookmark" && git push origin master ; }; then
+        herbe "Failed to sync with remote bookmarks"
+    fi
 fi
