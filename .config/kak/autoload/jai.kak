@@ -49,6 +49,7 @@ add-highlighter shared/jai regions
 add-highlighter shared/jai/code default-region group
 add-highlighter shared/jai/double_string region '"' (?<!\\)(\\\\)*" fill string
 add-highlighter shared/jai/single_string region "'" (?<!\\)(\\\\)*' fill string
+add-highlighter shared/jai/heredoc region -match-capture '#string\h*''?(\w+)''?' '^\t*(\w+)$' fill string
 add-highlighter shared/jai/comment region /\* \*/ fill comment
 add-highlighter shared/jai/comment_line region '//' $ fill comment
 

@@ -6,7 +6,7 @@ face global type rgb:517799
 face global variable default
 face global function default
 face global identifier default
-face global string white
+face global string rgb:88aacc
 face global keyword rgb:517799
 face global operator rgb:517799
 face global attribute default

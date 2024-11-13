@@ -1,0 +1,16 @@
+#!/bin/sh
+
+cmd=$(printf 'file\nclipboard' | dmenu -p "screenshot to:")
+[[ -z "$cmd" ]] && exit 1
+
+set -e
+case $cmd in
+  file)
+      outfile=$(flameshot gui --path ~/media/pictures/screenshots/ 2>&1 | grep -oP '(?<=Capture saved as ).*$')
+      herbe "Screenshot saved to $outfile"
+      ;;
+  clipboard)
+      flameshot gui --clipboard
+      herbe "Screenshot copied to clipboard"
+      ;;
+esac
