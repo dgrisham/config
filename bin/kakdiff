@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -- "$(realpath "$1")" "$(realpath "$2")"
+
+diff="$(mktemp)"
+
+finish() {
+	jobs -p | xargs kill > /dev/null 2>&1
+	rm "$diff"
+	exit
+}
+trap finish EXIT INT TERM
+
+diff -u "$1" "$2" > "$diff"
+printf "%s\n%s\n" "$1" "$2" |
+	entr -ns "diff -u \"$1\" \"$2\" > \"$diff\"" > /dev/null 2>&1 &
+
+kak -e 'set buffer autoreload yes; set buffer filetype diff' "$diff" &
+wait $!

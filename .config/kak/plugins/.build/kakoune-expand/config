@@ -4,7 +4,7 @@ try %{
     # 'lock' mapping where pressing <space> repeatedly will expand the selection
     declare-user-mode expand
     map -docstring "expand" global expand <space> ': expand<ret>'
-    map -docstring "expand (lock)" global user X       ': expand; enter-user-mode -lock expand<ret>'
+    map -docstring "expand (lock)" global user X  ': expand; enter-user-mode -lock expand<ret>'
  } catch %{
     echo -debug "Error while evaluating 'kakoune-expand' configuration: %val{error}"
 

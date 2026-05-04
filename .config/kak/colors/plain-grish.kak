@@ -6,7 +6,7 @@ face global type rgb:517799
 face global variable default
 face global function default
 face global identifier default
-face global string white
+face global string rgb:88aacc
 face global keyword rgb:517799
 face global operator rgb:517799
 face global attribute default
@@ -32,8 +32,8 @@ face global PrimaryCursor blue,white
 face global SecondaryCursor black,rgb:707070
 face global PrimaryCursorEol default,white
 face global SecondaryCursorEol default,rgb:707070
-face global LineNumbers default
-face global LineNumberCursor default
+face global LineNumbers rgb:777777,default
+face global LineNumberCursor default,default+r
 face global MenuForeground yellow,rgb:282828
 face global MenuBackground white,rgb:282828
 face global MenuInfo yellow,rgb:282828

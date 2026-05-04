@@ -1,7 +1,22 @@
 #!/usr/bin/env zsh
 
-[[ -z "$WENV" ]] && { /usr/local/bin/kak $@ ; return 0 }
+kakbin="/opt/homebrew/bin/kak"
+[[ -z "$WENV" ]] && { $kakbin $@ ; return 0 }
+
 local server_name=$(sed 's/\//-/g' <<< $WENV)
-local socket_file=$(grep "^$server_name\$" <<< $(/usr/local/bin/kak -l))
-[[ $socket_file == "" ]] && /usr/local/bin/kak -d -s $server_name -E "cd $WENV_DIR" &
-/usr/local/bin/kak -c $server_name $@
+local base_dir="$WENV_DIR"
+
+if [[ -n "$GIT_WORKTREES" ]]; then
+    for worktree_dir in $(git worktree list | cut -d' ' -f1 | grep "$GIT_WORKTREES"); do
+        if [[ $PWD/ = $worktree_dir/* ]]; then
+            base_dir="$worktree_dir"
+            branch=${worktree_dir#"${GIT_WORKTREES}/"}
+            server_name="$(sed 's/\//-/g' <<< $branch)"
+            break
+        fi
+    done
+fi
+
+local socket_file=$(grep "^$server_name\$" <<< $($kakbin -l))
+[[ $socket_file == "" ]] && $kakbin -d -s $server_name -E "cd $base_dir" &
+$kakbin -c $server_name $@

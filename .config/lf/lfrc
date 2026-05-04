@@ -1,4 +1,7 @@
 set promptfmt "\033[36m%u@%h\033[0m:\033[93m%d\033[0m\033[1m%f\033[0m"
+set shell zsh
+set shellopts '-ey'
+set ifs "\n"
 
 map D ${{
     printf "delete $fx? [y/N] "
@@ -9,7 +12,16 @@ map D ${{
 map Q quit
 map q
 
-cmd open ${{
+cmd n ${{
+    printf "new file's name: "
+    read filename
+    [ $filename != '' ] && kak $filename
+}}
+
+map Q quit
+map q
+
+cmd open_by_extension ${{
     test -L "$f" && f=$(readlink -f "$f")
     fname=$(basename -- "$f")
 
@@ -17,13 +29,19 @@ cmd open ${{
     # try matching file extension first
     case "$ext" in
         png|jpg|jpeg|webp)
-            sxiv "$fx" &
+            open "$fx" &
             ;;
         cbr|cbz|zip|rar)
             sxcv "$fx" &
             ;;
         pdf|cbr)
             zathura "$fx" &
+            ;;
+        mkv|mp4|avi)
+            mpv "$fx" &
+            ;;
+        html)
+            open -a "Brave Browser" "$fx" &
             ;;
         # png|jpg|jpeg|webp)
         #     feh -x. "$fx" &
@@ -33,12 +51,21 @@ cmd open ${{
             ;;
     esac
 }}
-map o open
+map o open_by_extension
 
 cmd open_recursively ${{
     test -d $f && $EDITOR $(find $f -maxdepth 1 -type f)
 }}
 map '*' open_recursively
+
+cmd open ${{
+    $EDITOR $fx
+}}
+
+cmd new ${{
+    $EDITOR $1
+}}
+map n push :new<space>
 
 cmd skak ${{
     skak || exit 0

@@ -1,9 +1,11 @@
 #!/usr/bin/env zsh
 
-export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json"'
+# export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json" --ignore vendor --ignore .terraform'
+export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json" --ignore vendor --ignore .terraform --ignore "*fake*" --ignore "*_test.go"'
+export AG_PREFIX="$AG_PREFIX $MORE_AG_PREFIX"
 fzf --ansi --disabled \
     --delimiter : \
     --query "$*" \
-    --bind "start:reload:$AG_PREFIX {q} || true" \
-    --bind "change:reload:$AG_PREFIX {q} || true" \
-    --bind "enter:execute($EDITOR {1} +{2})+reload:$AG_PREFIX {q} || true"
+    --bind "start:reload:$AG_PREFIX {q} | sort || true" \
+    --bind "change:reload:$AG_PREFIX {q} | sort || true" \
+    --bind "enter:execute($EDITOR {1} +{2})+reload:$AG_PREFIX {q} | sort || true"

@@ -1,9 +1,17 @@
 ## clippy -> dilbert
 set-option global ui_options terminal_set_title=false terminal_assistant=dilbert
 
+set-option global autocomplete prompt
+
 ## swap space and comma
 map global normal <space> ,
 map global normal , <space>
+
+map global prompt <c-n> <tab>
+map global prompt <c-p> <s-tab>
+# can't get those to unmap for some reason
+# unmap global prompt <tab>
+# unmap global prompt <s-tab>
 
 ## Hooks
 
@@ -23,16 +31,16 @@ def -hidden selection %{ enter-user-mode selection }
 map global user s :selection<ret> -docstring 'selection shortcuts'
 
 # add line numbers
-hook global KakBegin .* %{addhl global/ number-lines -relative}
+hook global KakBegin .* %{addhl global/ number-lines -hlcursor}
 
 hook global WinCreate .*[.](md|tex|rst) %{
-    set buffer autowrap_column 120
+    set buffer autowrap_column 175
     autowrap-enable
 }
 
 declare-user-mode fmt
-map global fmt f '"ZZ<a-a>p|fmt --width 120 --goal 120<ret>;"Zz' -docstring 'Wrap current paragraph to 120 characters'
-map global fmt F 'S\n\n+<ret>|fmt --width 120 --goal 120<ret>' -docstring 'Wrap selected block of paragraphs to 120 characters'
+map global fmt f '"ZZ<a-a>p|fmt --width 175 --goal 175<ret>;"Zz' -docstring 'Wrap current paragraph to 175 characters'
+map global fmt F 'S\n\n+<ret>|fmt --width 175 --goal 175<ret>' -docstring 'Wrap selected block of paragraphs to 175 characters'
 map global fmt c '"ZZ<a-i>p<a-j><a-h>;' -docstring 'Collapse current paragraph to one line'
 map global fmt C 'S\n\n+<ret><a-i>p<a-j>' -docstring 'Collapse selected paragraphs to one line'
 def -hidden fmt %{ enter-user-mode fmt }
@@ -57,7 +65,7 @@ set global scrolloff 20,0
 set global indentwidth 4
 set global tabstop 4
 ## 2-space tabs for Haskell
-hook global BufSetOption filetype=.*?(haskell|ruby|yaml|html|css|javascript) %{
+hook global BufSetOption filetype=.*?(json|haskell|ruby|yaml|html|css|javascript|typescript) %{
     set buffer tabstop 2
     set buffer indentwidth 2
 }
@@ -84,22 +92,22 @@ def toggle-spell %{
 }
 map global user <a-s> :toggle-spell<ret> -docstring 'toggle spellcheck'
 
-# tab indents or tab-completes, depending on context
-hook global InsertCompletionShow .* %{
-    try %{
-        # this command temporarily removes cursors preceded by whitespace;
-        # if there are no cursors left, it raises an error, does not
-        # continue to execute the mapping commands, and the error is eaten
-        # by the `try` command so no warning appears.
-        execute-keys -draft 'h<a-K>\h<ret>'
-        map window insert <tab> <c-n>
-        map window insert <s-tab> <c-p>
-    }
-}
-hook global InsertCompletionHide .* %{
-    unmap window insert <tab> <c-n>
-    unmap window insert <s-tab> <c-p>
-}
+# # tab indents or tab-completes, depending on context
+# hook global InsertCompletionShow .* %{
+#     try %{
+#         # this command temporarily removes cursors preceded by whitespace;
+#         # if there are no cursors left, it raises an error, does not
+#         # continue to execute the mapping commands, and the error is eaten
+#         # by the `try` command so no warning appears.
+#         execute-keys -draft 'h<a-K>\h<ret>'
+#         map window insert <tab> <c-n>
+#         map window insert <s-tab> <c-p>
+#     }
+# }
+# hook global InsertCompletionHide .* %{
+#     unmap window insert <tab> <c-n>
+#     unmap window insert <s-tab> <c-p>
+# }
 
 # Tmux integration
 # ================
@@ -107,26 +115,66 @@ hook global InsertCompletionHide .* %{
 declare-user-mode tmux
 def -hidden tmux %{ enter-user-mode tmux }
 
+define-command -hidden spawn-tmux-vertical %{ evaluate-commands %sh{
+    printf "tmux-terminal-vertical CHANGE_TO_DIR=%s CUSTOM_RUN=kak_session zsh -is" "$(pwd)"
+}}
+define-command -hidden spawn-tmux-horizontal %{ evaluate-commands %sh{
+    printf "tmux-terminal-horizontal CHANGE_TO_DIR=%s CUSTOM_RUN=kak_session zsh -is" "$(pwd)"
+}}
+define-command -hidden spawn-tmux-window %{ evaluate-commands %sh{
+    printf "tmux-terminal-window CHANGE_TO_DIR=%s CUSTOM_RUN=kak_session zsh -is" "$(pwd)"
+}}
+map global tmux '\'       ':spawn-tmux-horizontal<ret>' -docstring 'horizontal split'
+map global tmux '<minus>' ':spawn-tmux-vertical<ret>'   -docstring 'vertical split'
+map global tmux c         ':spawn-tmux-window<ret>'     -docstring 'new window'
+
 map global tmux y ':nop %sh{tmux set-buffer "${kak_selection}"}<ret>' -docstring 'yank primary selection to tmux buffer'
 map global tmux p 'o<esc>!tmux show-buffer<ret>'                      -docstring 'paste tmux buffer contents'
 
-map global tmux '\'       ':tmux-terminal-horizontal kak -c %val{session}<ret>' -docstring 'horizontal split'
-map global tmux '<minus>' ':tmux-terminal-vertical   kak -c %val{session}<ret>' -docstring 'vertical split'
-map global tmux c         ':tmux-terminal-window     kak -c %val{session}<ret>' -docstring 'new window'
-
-map global tmux s         ':tmux-terminal-horizontal skak %val{selection}<ret>' -docstring 'new selection'
-
 declare-user-mode tmux-lf
-map global tmux    f         ':enter-user-mode tmux-lf<ret>'                    -docstring 'lf'
-map global tmux-lf '\'       ':tmux-terminal-horizontal zsh -c "lf ; zsh"<ret>' -docstring 'horizontal fzf split'
-map global tmux-lf '<minus>' ':tmux-terminal-vertical   zsh -c "lf ; zsh"<ret>' -docstring 'vertical fzf split'
-map global tmux-lf c         ':tmux-terminal-window     zsh -c "lf ; zsh"<ret>' -docstring 'new fzf window'
+define-command -hidden tmux-lf-vertical %{ evaluate-commands %sh{
+    printf "tmux-terminal-vertical GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'lf; zsh'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-lf-horizontal %{ evaluate-commands %sh{
+    printf "tmux-terminal-horizontal GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'lf; zsh'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-lf-window %{ evaluate-commands %sh{
+    printf "tmux-terminal-window GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'lf; zsh'" ${GIT_WORKTREES} "$(pwd)"
+}}
+map global tmux    l         ':enter-user-mode tmux-lf<ret>'                    -docstring 'lf'
+map global tmux-lf '\'       ':tmux-lf-horizontal<ret>' -docstring 'horizontal fzf split'
+map global tmux-lf '<minus>' ':tmux-lf-vertical<ret>' -docstring 'vertical fzf split'
+map global tmux-lf c         ':tmux-lf-window<ret>' -docstring 'new fzf window'
 
 declare-user-mode tmux-skak
-map global tmux s              ':enter-user-mode tmux-skak<ret>'                     -docstring 'skak'
-map global tmux-skak '\'       ':tmux-terminal-horizontal zsh -c "skak %val{selection}"<ret>' -docstring 'horizontal skak split'
-map global tmux-skak '<minus>' ':tmux-terminal-vertical   zsh -c "skak %val{selection}"<ret>' -docstring 'vertical skak split'
-map global tmux-skak c         ':tmux-terminal-window     zsh -c "skak %val{selection}"<ret>' -docstring 'new skak window'
+define-command -hidden tmux-skak-vertical %{ evaluate-commands %sh{
+    printf "tmux-terminal-vertical GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skak'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-skak-horizontal %{ evaluate-commands %sh{
+    printf "tmux-terminal-horizontal GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skak'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-skak-window %{ evaluate-commands %sh{
+    printf "tmux-terminal-window GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skak'" ${GIT_WORKTREES} "$(pwd)"
+}}
+map global tmux s              ':enter-user-mode tmux-skak<ret>' -docstring 'skak'
+map global tmux-skak '\'       ':tmux-skak-horizontal<ret>'      -docstring 'horizontal skak split'
+map global tmux-skak '<minus>' ':tmux-skak-vertical<ret>'        -docstring 'vertical skak split'
+map global tmux-skak c         ':tmux-skak-window<ret>'          -docstring 'new skak window'
+
+declare-user-mode tmux-skaf
+define-command -hidden tmux-skaf-vertical %{ evaluate-commands %sh{
+    printf "tmux-terminal-vertical GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skaf'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-skaf-horizontal %{ evaluate-commands %sh{
+    printf "tmux-terminal-horizontal GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skaf'" ${GIT_WORKTREES} "$(pwd)"
+}}
+define-command -hidden tmux-skaf-window %{ evaluate-commands %sh{
+    printf "tmux-terminal-window GIT_WORKTREES=%s CHANGE_TO_DIR=%s zsh -c 'skaf'" ${GIT_WORKTREES} "$(pwd)"
+}}
+map global tmux f              ':enter-user-mode tmux-skaf<ret>' -docstring 'skaf'
+map global tmux-skaf '\'       ':tmux-skaf-horizontal<ret>'      -docstring 'horizontal skaf split'
+map global tmux-skaf '<minus>' ':tmux-skaf-vertical<ret>'        -docstring 'vertical skaf split'
+map global tmux-skaf c         ':tmux-skaf-window<ret>'          -docstring 'new skaf window'
 
 map global user t :tmux<ret> -docstring 'prefix for tmux subcommands'
 
@@ -140,8 +188,8 @@ hook global WinSetOption filetype=diff %{
 
 # X11 (copy/paste)
 # ===============
-map global user y 'y<a-|>xclip -selection clipboard<ret>' -docstring 'copy to X clipboard'
-map global user p '!xclip -selection clipboard -o<ret>'   -docstring 'paste from X clipboard'
+map global user y 'y<a-|>pbcopy<ret>' -docstring 'copy to system clipboard'
+map global user p '!pbpaste<ret>'   -docstring 'paste from system clipboard'
 
 declare-user-mode xclip-yank
 def -hidden xclip-yank %{ enter-user-mode xclip-yank }
@@ -174,60 +222,31 @@ hook global BufSetOption filetype=python %!
     map global user d 'iprint(f": {}")<esc>h<a-a>bs(?=[:}])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
 !
 
-hook global BufSetOption filetype=go %@
-    hook global KakBegin .* %{
-        evaluate-commands %sh{
-            path="$PWD"
-            while [ "$path" != "$HOME" ] && [ "$path" != "/" ]; do
-                if [ -e "./tags" ]; then
-                    printf "%s\n" "set-option -add current ctagsfiles %{$path/tags}"
-                    break
-                else
-                    cd ..
-                    path="$PWD"
-                fi
-            done
-        }
-    }
-    map global normal <c-t> <a-i>w:ctags-search<ret> -docstring 'ctags search'
-
-    map global user i ':nop %sh{ goimports -e -w "$kak_buffile" }<ret>' -docstring 'run goimports on this buffer'
-    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
-    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile"; gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
-
-    declare-user-mode write-code-template
-    map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
-    map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
-    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
-    map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
-    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
-@
-
 hook global BufSetOption filetype=javascript %!
-    map global user d 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
+
 !
 
 hook global BufSetOption filetype=javascript %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template b 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=jai %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template b 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
-hook global BufSetOption filetype=yaml %!
+hook global BufSetOption filetype=(sh|yaml) %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I# <esc>A #<esc>xyPxI<esc><a-l>r#xykP' -docstring 'header comment block'
+    map global write-code-template b 'I# <esc>A #<esc>xyPHr#xyjp' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=sql %!
     declare-user-mode write-code-template
-    map global write-code-template c 'I-- <esc>A --<esc>xyPHr-jxypj<a-h>r-;' -docstring 'header comment block'
+    map global write-code-template b 'I-- <esc>A --<esc>xyPHr-jxypj<a-h>r-;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
@@ -309,6 +328,80 @@ hook global WinSetOption filetype=python %{
     hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ black "$kak_buffile" }; edit! }
 }
 
+# suspend and resume
+
+def suspend-and-resume \
+    -params 1..2 \
+    -docstring 'suspend-and-resume <cli command> [<kak command after resume>]: backgrounds current kakoune client and runs specified cli command.  Upon exit of command the optional kak command is executed.' \
+    %{ evaluate-commands %sh{
+
+    # Note we are adding '&& fg' which resumes the kakoune client process after the cli command exits
+    cli_cmd="$1 && fg"
+    post_resume_cmd="$2"
+
+    # automation is different platform to platform
+    platform=$(uname -s)
+    case $platform in
+        Darwin)
+	    automate_cmd="sleep 0.01; osascript -e 'tell application \"System Events\" to keystroke \"${cli_cmd}\n\"'"
+            kill_cmd="/bin/kill"
+            break
+            ;;
+        Linux)
+            automate_cmd="sleep 0.2; xdotool type '$cli_cmd'; xdotool key Return"
+            kill_cmd="/usr/bin/kill"
+            break
+            ;;
+    esac
+
+    # Uses platforms automation to schedule the typing of our cli command
+    nohup sh -c "$automate_cmd"  > /dev/null 2>&1 &
+    # Send kakoune client to the background
+    $kill_cmd -SIGTSTP $kak_client_pid
+
+    # ...At this point the kakoune client is paused until the " && fg " gets run in the $automate_cmd
+
+    # Upon resume, run the kak command is specified
+    if [ ! -z "$post_resume_cmd" ]; then
+        echo "$post_resume_cmd"
+    fi
+}}
+
+# tig integration
+# ===============
+
+def tig-blame -override -docstring 'Open blame in tig for current file and line' %{
+    # Note here we aren't passing any command on resume of kakoune
+    suspend-and-resume " tig blame +%val{cursor_line} %val{buffile}"
+}
+
+def tig-blame-selection -docstring "Run tig -L on the selected lines" %{
+	execute-keys <a-:>
+	set-register d %sh{
+		anchor=${kak_selection_desc%,*}
+		anchor_line=${anchor%.*}
+		cursor=${kak_selection_desc#*,}
+		cursor_line=${cursor%.*}
+		printf %s "tig -C $(git rev-parse --show-toplevel) -L$anchor_line,$cursor_line:${kak_buffile##$(pwd)/}"
+	}
+	suspend-and-resume %reg{d}
+}
+
+declare-user-mode tig
+map global user T ':enter-user-mode tig<ret>'     -docstring 'tig commands'
+map global tig t ':tig-blame-selection<ret>'      -docstring 'tig blame selection'
+map global tig b ':tig-blame<ret>'                -docstring 'tig blame (all)'
+map global tig m ':suspend-and-resume "tig"<ret>' -docstring 'tig main view'
+
+declare-user-mode git
+map global user G ':enter-user-mode git<ret>' -docstring 'git commands'
+map global git b ':git blame<ret>'            -docstring 'show git blame'
+map global git d ':git diff<ret>'             -docstring 'show git diff'
+map global git s ':git show-diff<ret>'        -docstring 'show git diff in line flags'
+map global git h ':git hide-diff<ret>'        -docstring 'hide git diff in line flags'
+map global git n ':git next-hunk<ret>'        -docstring 'goto next git hunk'
+map global git p ':git prev-hunk<ret>'        -docstring 'goto prev git hunk'
+
 # Plugins
 # =======
 
@@ -319,13 +412,31 @@ plug "occivink/kakoune-find"
 plug "Delapouite/kakoune-palette"
 plug "TeddyDD/kakoune-lf"
 plug "eraserhd/kak-ansi"
+plug "https://git.sr.ht/~hadronized/notes.kak" config %{
+    ## notes
+    set-option global notes_root_dir %sh{ echo $HOME/scratch/notes }
+    # set-option global notes_dir %sh{ echo $HOME/scratch/notes/notes }
+    # set-option global notes_archives_dir %sh{ echo $HOME/scratch/notes/archives }
+    # set-option global notes_journal_dir %sh{ echo $HOME/scratch/notes/journal }
+    # set-option global notes_capture_file %sh{ echo $HOME/scratch/notes/capture.md }
+    map global user n ':enter-user-mode notes<ret>'         -docstring 'notes'
+}
+plug "chriswalker/golang.kak" config %{
+    face global Uninstrumented white
+    declare-user-mode golang
+    map global golang c ':go-coverage<ret>'              -docstring "coverage"
+    map global golang t ':go-test<ret>:ansi-enable<ret>' -docstring "test"
+    map global golang s ':go-test summary<ret>'          -docstring "test summary"
+    map global golang a ':go-alternate<ret>'             -docstring "alternate between impl and _test files"
+    map global user   g ':enter-user-mode golang<ret>'   -docstring 'golang'
+}
 
 plug "occivink/kakoune-expand" config %{
     map -docstring "expand" global user x ': expand<ret>'
     # 'lock' mapping where pressing <space> repeatedly will expand the selection
     declare-user-mode expand
     map -docstring "expand" global expand <space> ': expand<ret>'
-    map -docstring "expand (lock)" global user X       ': expand; enter-user-mode -lock expand<ret>'
+    map -docstring "expand (lock)" global user X  ': expand; enter-user-mode -lock expand<ret>'
 }
 
 plug "h-youhei/kakoune-surround" config %{
@@ -346,4 +457,99 @@ plug "Delapouite/kakoune-buffers" config %{
     alias global bl buffer-last
     alias global bo buffer-only
     alias global bo! buffer-only-force
+}
+
+# LSP
+# ===
+
+eval %sh{kak-lsp}
+lsp-enable
+
+# lsp-diagnostic-lines-disable global
+lsp-inline-diagnostics-disable global
+# lsp-inlay-hints-enable global
+
+map global user l ':enter-user-mode lsp<ret>' -docstring 'LSP mode'
+
+map global insert <tab> '<a-;>:try lsp-snippets-select-next-placeholders catch %{ execute-keys -with-hooks <lt>tab> }<ret>' -docstring 'Select next snippet placeholder'
+
+map global object a '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
+map global object <a-a> '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
+map global object f '<a-semicolon>lsp-object Function Method<ret>' -docstring 'LSP function or method'
+map global object t '<a-semicolon>lsp-object Class Interface Struct<ret>' -docstring 'LSP class interface or struct'
+map global object d '<a-semicolon>lsp-diagnostic-object --include-warnings<ret>' -docstring 'LSP errors and warnings'
+map global object D '<a-semicolon>lsp-diagnostic-object<ret>' -docstring 'LSP errors'
+
+hook global BufSetOption filetype=go %@
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile" }; git update-diff; edit! }
+    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile" }; edit! }
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile" }; ctags-generate; edit! }
+
+    # map global user i ':w<ret>:nop %sh{ goimports -e -w "$kak_buffile" }<ret>' -docstring 'run goimports on this buffer'
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ go fmt -e -w "$kak_buffile" }; ctags-generate; edit! }
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile"; gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
+
+    declare-user-mode write-code-template
+    map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
+    map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
+    map global write-code-template b 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+
+    set-option buffer lsp_servers %{
+        [gopls]
+        root_globs = ["Gopkg.toml", "go.mod", ".git"]
+        settings_section = "gopls"
+        [gopls.settings.gopls]
+        "formatting.gofumpt" = false
+    }
+
+    declare-option bool templ_lsp_navigating
+    declare-option str  templ_lsp_target_symbol
+    # Custom lsp-definition command to handle templ files
+    define-command lsp-definition-templ -docstring "Go to definition, redirecting _templ.go to .templ" %{
+        set-option global templ_lsp_navigating true
+        execute-keys <a-i>w
+        set-option global templ_lsp_target_symbol %val{selection}
+        lsp-definition
+    }
+    # Hook to trigger templ-goto-source on buffer switch
+    hook global WinDisplay .*_templ.go %{
+        evaluate-commands %sh{
+            if [ "${kak_opt_templ_lsp_navigating}" = "true" ]; then
+                echo "templ-goto-source"
+            fi
+        }
+        set-option global templ_lsp_navigating false
+        set-option global templ_lsp_target_symbol ''
+    }
+    define-command templ-goto-source -docstring "Go to the original .templ file from a generated _templ.go file" %{
+        evaluate-commands %sh{
+            base_dir="$(pwd)/"
+            file_path="${kak_buffile#$base_dir}"
+            if [[ "$file_path" =~ _templ\.go$ ]]; then
+                templ_file="${file_path%_templ.go}.templ"
+                if [ -f "$templ_file" ]; then
+                    echo "edit $templ_file"
+                    echo "lsp-goto-document-symbol ${kak_opt_templ_lsp_target_symbol}"
+                else
+                    echo "echo -debug 'No corresponding .templ file found for $file_path'"
+                fi
+            else
+                echo "echo -debug '$file_path Not a _templ.go file'"
+            fi
+        }
+    }
+
+    unmap global lsp d
+    map global lsp d ':lsp-definition-templ<ret>' -docstring 'Go to definition (Templ-aware)'
+@
+
+hook -group lsp-filetype-templ global BufSetOption filetype=templ %{
+    set-option buffer lsp_servers %{
+        [templ]
+        filetypes = ["templ"]
+        root_globs = ["go.mod", ".git", "Gopkg.toml"]
+        command = "templ"
+        args = ["lsp"]
+    }
 }

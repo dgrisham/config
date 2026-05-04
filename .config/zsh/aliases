@@ -78,15 +78,27 @@ alias usv='noglob __usv'
 
 alias tm="tmux attach"
 alias kak='kak_session'
+alias kak_session="source $BIN/kak_session"
 alias apv='mpv --vid=no'
 alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
-alias fd='/usr/bin/fd --hidden'
-alias ag="/usr/local/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags"
+alias brew='arch -arm64 /opt/homebrew/bin/brew'
+alias fd='/opt/homebrew/bin/fd --hidden'
+alias ag="/opt/homebrew/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags --ignore vendor --skip-vcs-ignores"
 alias lg=lazygit
 
+# jq but don't break when processing non-json lines ( this is a function just to avoid insane quote management)
+jqr() { jq -R -r '. as $line | try fromjson catch $line' }
+jwt-decode() {
+    local payload=$(echo "$1" | cut -d. -f2)
+    echo "${payload}==" | base64 -d | jq .
+}
+
+
+
 # curl with status code
-alias scurl='curl -w "%{http_code}"'
+alias scurl='curl --silent -w "\nstatus: %{http_code}\n"'
+# jcurl() { scurl $@ | jqr }
 
 # sleep/hibernate
 sys() {
