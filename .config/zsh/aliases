@@ -82,10 +82,13 @@ alias kak_session="source $BIN/kak_session"
 alias apv='mpv --vid=no'
 alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
-alias brew='arch -arm64 /opt/homebrew/bin/brew'
+alias brew="arch -arm64 $HOMEBREW_ROOT/bin/brew"
 alias fd='/opt/homebrew/bin/fd --hidden'
 alias ag="/opt/homebrew/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags --ignore vendor --skip-vcs-ignores"
 alias lg=lazygit
+
+alias use-nvim='export EDITOR=nvim VISUAL=nvim'
+alias use-kak='export EDITOR=kak_session VISUAL=kak_session'
 
 # jq but don't break when processing non-json lines ( this is a function just to avoid insane quote management)
 jqr() { jq -R -r '. as $line | try fromjson catch $line' }

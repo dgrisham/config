@@ -117,19 +117,19 @@ bindkey "^E" edit-command-line
 bindkey -M vicmd "^E" edit-command-line
 
 # completion stuff (NOTE: requires installing this plugin)
-source /opt/homebrew/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+source $HOMEBREW_ROOT/share/zsh-history-substring-search/zsh-history-substring-search.zsh
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
 
 # fish-like autosuggestions plugin
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $HOMEBREW_ROOT/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 bindkey '^ ' autosuggest-accept
 # these only work while typing / in 'insert' mode
 bindkey '^f' vi-forward-word # move cursor forward a word, which also has the effect of incremental completion w/ the autosuggestions
 bindkey '^b' vi-backward-word # this doesn't undo any typing/completion, just moves the cursor
 
 # Load zsh-syntax-highlighting; should be last.
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+source $HOMEBREW_ROOT/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
 
 ZSH_HIGHLIGHT_STYLES[alias]=fg=cyan
 ZSH_HIGHLIGHT_STYLES[builtin]=fg=cyan

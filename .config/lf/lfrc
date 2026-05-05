@@ -15,7 +15,7 @@ map q
 cmd n ${{
     printf "new file's name: "
     read filename
-    [ $filename != '' ] && kak $filename
+    [ $filename != '' ] && "$EDITOR" "$filename"
 }}
 
 map Q quit

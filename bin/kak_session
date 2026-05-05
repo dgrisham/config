@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-kakbin="/opt/homebrew/bin/kak"
+kakbin="$HOMEBREW_ROOT/bin/kak"
 [[ -z "$WENV" ]] && { $kakbin $@ ; return 0 }
 
 local server_name=$(sed 's/\//-/g' <<< $WENV)
