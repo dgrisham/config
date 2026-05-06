@@ -130,3 +130,7 @@ docker
 .gitconfig*
 
 .psql_history
+/.viminfo
+/Public
+/.claude
+/.claude.json
