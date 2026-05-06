@@ -87,8 +87,8 @@ alias fd='/opt/homebrew/bin/fd --hidden'
 alias ag="/opt/homebrew/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags --ignore vendor --skip-vcs-ignores"
 alias lg=lazygit
 
-alias use-nvim='export EDITOR=nvim VISUAL=nvim'
-alias use-kak='export EDITOR=kak_session VISUAL=kak_session'
+alias snig='EDITOR=nvim VISUAL=nvim skak'
+alias snif='EDITOR=nvim VISUAL=nvim skaf'
 
 # jq but don't break when processing non-json lines ( this is a function just to avoid insane quote management)
 jqr() { jq -R -r '. as $line | try fromjson catch $line' }

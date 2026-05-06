@@ -448,15 +448,9 @@ plug "h-youhei/kakoune-surround" config %{
     map global user e ':enter-user-mode surround<ret>' -docstring 'surround'
 }
 
-plug "Delapouite/kakoune-buffers" config %{
-    hook global WinDisplay .* info-buffers
-    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
-    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
-    alias global bd delete-buffer
-    alias global bf buffer-first
-    alias global bl buffer-last
-    alias global bo buffer-only
-    alias global bo! buffer-only-force
+plug "delapouite/kakoune-buffers" config %{
+    # map global normal a ': enter-buffers-mode<ret>' -docstring 'buffers'
+    # map global normal A ': enter-user-mode -lock buffers<ret>' -docstring 'buffers (lock)'
 }
 
 # LSP

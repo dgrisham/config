@@ -14,11 +14,10 @@ vim.o.updatetime = 250
 vim.o.timeoutlen = 300
 vim.o.splitright = true
 vim.o.splitbelow = true
-vim.o.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
+vim.o.list = false
 vim.o.inccommand = 'split'
-vim.o.cursorline = true
-vim.o.scrolloff = 10
+vim.o.cursorline = false
+vim.o.scrolloff = 20
 vim.o.confirm = true
 
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -28,6 +27,9 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+vim.cmd.colorscheme 'unokai'
+vim.api.nvim_set_hl(0, "Normal", { bg = "none" })
 
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
@@ -158,6 +160,7 @@ require('lazy').setup({
           end
 
           map('gln', vim.lsp.buf.rename, '[R]e[n]ame')
+          map('glh', vim.lsp.buf.signature_help, '[H]over signature')
           map('gla', vim.lsp.buf.code_action, '[G]oto Code [A]ction', { 'n', 'x' })
           map('glr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
           map('gli', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
@@ -180,28 +183,6 @@ require('lazy').setup({
           end
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
-            local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight', { clear = false })
-            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-              buffer = event.buf,
-              group = highlight_augroup,
-              callback = vim.lsp.buf.document_highlight,
-            })
-
-            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-              buffer = event.buf,
-              group = highlight_augroup,
-              callback = vim.lsp.buf.clear_references,
-            })
-
-            vim.api.nvim_create_autocmd('LspDetach', {
-              group = vim.api.nvim_create_augroup('lsp-detach', { clear = true }),
-              callback = function(event2)
-                vim.lsp.buf.clear_references()
-                vim.api.nvim_clear_autocmds { group = 'lsp-highlight', buffer = event2.buf }
-              end,
-            })
-          end
 
           if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
             map('<leader>th', function()
@@ -304,14 +285,6 @@ require('lazy').setup({
       fuzzy = { implementation = 'lua' },
       signature = { enabled = true },
     },
-  },
-  {
-    'bluz71/vim-moonfly-colors',
-    name = 'moonfly',
-    priority = 1000,
-    config = function()
-      vim.cmd.colorscheme 'unokai'
-    end,
   },
   {
     'mfussenegger/nvim-dap',
@@ -421,3 +394,5 @@ require('lazy').setup({
 
 vim.api.nvim_set_hl(0, 'Comment', { fg = '#7f8490' })
 vim.api.nvim_set_hl(0, '@comment', { link = 'Comment' })
+
+vim.api.nvim_set_hl(0, 'DiagnosticUnderlineError', { underline = true, fg = '#ff5555' })
