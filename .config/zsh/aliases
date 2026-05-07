@@ -83,8 +83,8 @@ alias apv='mpv --vid=no'
 alias ts='tabbed -c -r2 surf -e x -SN'
 alias xc='xclip -selection c'
 alias brew="arch -arm64 $HOMEBREW_ROOT/bin/brew"
-alias fd='/opt/homebrew/bin/fd --hidden'
-alias ag="/opt/homebrew/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags --ignore vendor --skip-vcs-ignores"
+alias fd="$HOMEBREW_ROOT/bin/fd --hidden"
+alias ag="$HOMEBREW_ROOT/bin/ag --color-path='1;36' --color-line-number='0;37' --color-match='1;33' --hidden --ignore node_modules --ignore .git --ignore tags --ignore vendor --skip-vcs-ignores"
 alias lg=lazygit
 
 alias snig='EDITOR=nvim VISUAL=nvim skak'
