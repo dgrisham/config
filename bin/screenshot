@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 cmd=$(printf 'file\nclipboard' | dmenu -p "screenshot to:")
 [[ -z "$cmd" ]] && exit 1

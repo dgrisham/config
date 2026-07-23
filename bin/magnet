@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 watch_folder="$HOME/downloads/torrents/watch"
 cd "$watch_folder"
 [[ "$1" =~ xt=urn:btih:([^&/]+) ]] || exit;

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 [[ "$1" == 'urls_only' ]] && urls_only=true || urls_only=false
 
