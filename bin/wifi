@@ -1,115 +1,100 @@
 #!/usr/bin/env zsh
 
-# constants
-# ---------
-wifi_config="/etc/wpa_supplicant/wifi_networks"
-wifi_card="wlan0"
+# NixOS/iwd rewrite of the old wpa_supplicant+dhcpcd script. No sudo needed -
+# iwd's D-Bus service handles privilege separation itself. iwd also does its
+# own DHCP once connected (`EnableNetworkConfiguration` in main.conf / the
+# NixOS iwd module settings), so there's no separate dhcpcd step anymore.
+#
+# get_networks()'s table parsing is written against iwctl's documented output
+# format but not verified against a live `iwctl station wlan0 get-networks`
+# on this machine (wpa_supplicant currently owns wlan0, and iwd contends with
+# it for the radio via nl80211 - didn't want to risk the live connection to
+# test). Verify the parsing once this actually replaces wpa_supplicant.
 
-# reconnect using wpa_supplicant
-# ------------------------------
+wifi_dev="wlan0"
+wifi_password_log="$HOME/.local/share/wifi/passwords"
+
+# Prompts for the passphrase itself (instead of letting `iwctl` prompt invisibly)
+# so it can be logged to $wifi_password_log - iwd's own storage only keeps the
+# derived PreSharedKey, not the plaintext, and is root-owned anyway. Leave the
+# prompt blank for open networks or networks iwd already knows.
 wifi_connect() {
-    wifi_disconnect
-    sudo wpa_supplicant -B -Dnl80211 -i"$wifi_card" -c"$wifi_config"
-    sudo dhcpcd "$wifi_card"
-}
-
-# disconnect
-# ----------
-wifi_disconnect() {
-    sudo pkill wpa_supplicant
-    sudo pkill dhcpcd
-}
-
-# edit the wifi networks file
-# ---------------------------
-wifi_edit() {
-    sudo -E "${EDITOR:-vi}" "$wifi_config"
-}
-
-# create new network connection
-# -----------------------------
-wifi_new() {
     local ssid="$1"
     [[ -z "$ssid" ]] && return 1
-    echo "$ssid"
-    printf "[o]pen or [c]losed network: "
-    read network_type
+    local password
+    read -rs "password?Passphrase (blank if open/already known): "
     echo
-    echo "Outputting to '$wifi_config'..."
-    case "$network_type" in
-        o*|O*)
-            echo '\n'                   | sudo tee -a "$wifi_config"
-            echo 'network={'            | sudo tee -a "$wifi_config"
-            echo '    ssid="'"$ssid"'"' | sudo tee -a "$wifi_config"
-            echo '    key_mgmt=NONE'    | sudo tee -a "$wifi_config"
-            echo '}'                    | sudo tee -a "$wifi_config"
-            echo '\n'                   | sudo tee -a "$wifi_config"
-            ;;
-        c*|C*)
-            echo "enter passphrase..."
-            wpa_passphrase "$ssid" | sudo tee -a "$wifi_config"
-            ;;
-        *)
-            echo "Unrecognized network type: '$network_type'"
-            ;;
-    esac
+    if [[ -n "$password" ]]; then
+        iwctl --passphrase "$password" station "$wifi_dev" connect "$ssid"
+        mkdir -p "$(dirname "$wifi_password_log")"
+        [[ -f "$wifi_password_log" ]] || { touch "$wifi_password_log"; chmod 600 "$wifi_password_log"; }
+        echo "$ssid:$password" >> "$wifi_password_log"
+    else
+        iwctl station "$wifi_dev" connect "$ssid"
+    fi
 }
 
-# scan for networks in area
-# -------------------------
+wifi_disconnect() {
+    iwctl station "$wifi_dev" disconnect
+}
+
+# strips the table borders/header and the trailing security+signal columns,
+# leaving just the network name (which may itself contain spaces).
+get_networks() {
+    iwctl station "$wifi_dev" get-networks 2>/dev/null | perl -ne '
+        next if /^-+$/ || /Network name/ || /Available networks/ || /^\s*$/;
+        print "$1\n" if /^\s*>?\s*(.*?)\s+\S+\s+\S+\s*$/;
+    '
+}
+
 wifi_scan() {
-
-# perl -pe '1 while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) { print "test"; }'
-# echo "$w" | perl -n <(echo 'while (<>) { $x =~ /^BSS:.*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g); print "test"; }')
-# echo "$w" | perl -n <(echo 'while (<> =~ /^BSS:.*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) { print "test"; }')
-
-# perl -n '1 while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) {
-# while ($x =~ /^BSS: .*?SSID:[ \t]*([^\n]+).*?(WPA:|RSN:)?/g) {
-# }
-# while ($x =~ /(\w+)/g) {
-#     print "Word is $1, ends at position ", pos $x, "\n";
-# }
-
-
-    sudo iw dev "$wifi_card" scan \
-        | grep 'SSID:' \
-        | sed -e 's/^[ \t]*SSID:[ \t]*//' \
-        | grep -v '\\x00' \
-        | sort -u
+    iwctl station "$wifi_dev" scan
+    sleep 2
+    get_networks | sort -u
 }
 
-# nice interactive wifi-finder
-# ----------------------------
+# interactive picker - trigger a scan, fzf over the results, connect to the pick.
 wifi_menu() {
-    sudo ip link set "$wifi_card" up
-    local aps=$(wifi_scan)
-    wifi_new "$(fzf <<<$aps)" $@
+    local ssid="$(wifi_scan | fzf)"
+    [[ -z "$ssid" ]] && return 1
+    wifi_connect "$ssid"
 }
 
-# interface
-# ---------
+wifi_list_known() {
+    iwctl known-networks list
+}
+
+wifi_forget() {
+    local ssid="$1"
+    [[ -z "$ssid" ]] && return 1
+    iwctl known-networks "$ssid" forget
+}
+
 wifi_command="$1"
 [[ -z "$wifi_command" ]] && exit 0
 shift
 case "$wifi_command" in
     c|connect)
-        wifi_connect $@
+        wifi_connect "$@"
         ;;
     d|disconnect)
-        wifi_disconnect $@
+        wifi_disconnect "$@"
         ;;
-    e|edit)
-        wifi_edit $@
+    s|scan)
+        wifi_scan "$@"
         ;;
     m|menu)
-        wifi_menu $@
+        wifi_menu "$@"
         ;;
-    m|scan)
-        wifi_scan $@
+    l|list)
+        wifi_list_known "$@"
+        ;;
+    forget)
+        wifi_forget "$@"
         ;;
     r|restart)
         wifi_disconnect
-        wifi_connect $@
+        wifi_connect "$@"
         ;;
     *)
         echo "Unrecognized command: '$wifi_command'"
