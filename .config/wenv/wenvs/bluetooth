@@ -21,10 +21,7 @@ bootstrap_wenv() {}
 # declare -Ag wenv_files=()
 
 declare -Ag bt_devices=()
-# bt_devices[airpods]='28:F0:33:6B:E7:56'
-bt_devices[audio-technica]='74:45:CE:BE:38:50'
-bt_devices[momentum]='00:1B:66:E9:AD:3B'
-bt_devices[soundbar]='7C:96:D2:92:AD:19'
+bt_devices[airpods]='38:C4:3A:5D:BE:D6'
 
 alias bt=bluetoothctl
 
@@ -79,7 +76,7 @@ complete -F _bluetooth_disconnect bluetooth_disconnect
 reset_bluetooth_module() {
     set -x
     sudo rmmod btusb ; sudo modprobe btusb
-    sudo sv restart bluetoothd
+    sudo systemctl restart bluetooth
     set +x
     # sudo systemctl restart bluetooth
 }
