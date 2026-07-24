@@ -27,11 +27,8 @@ hook global WinSetOption filetype=jai %{
     hook window InsertChar \} -group jai-indent jai-indent-on-closing-curly-brace
     hook window InsertChar \n -group jai-insert jai-insert-on-new-line
 
-    alias window alt jai-alternative-file
-
     hook -once -always window WinSetOption filetype=.* %{
         remove-hooks window jai-.+
-        unalias window alt jai-alternative-file
     }
 }
 
@@ -49,7 +46,7 @@ add-highlighter shared/jai regions
 add-highlighter shared/jai/code default-region group
 add-highlighter shared/jai/double_string region '"' (?<!\\)(\\\\)*" fill string
 add-highlighter shared/jai/single_string region "'" (?<!\\)(\\\\)*' fill string
-add-highlighter shared/jai/heredoc region -match-capture '#string\h*''?(\w+)''?' '^\t*(\w+)$' fill string
+add-highlighter shared/jai/heredoc region -match-capture '#string\h*''?(\w+)''?' '^\h*(\w+)$' fill string
 add-highlighter shared/jai/comment region /\* \*/ fill comment
 add-highlighter shared/jai/comment_line region '//' $ fill comment
 
@@ -58,9 +55,9 @@ add-highlighter shared/jai/code/ regex %{-?([0-9]*\.(?!0[xX]))?\b([0-9]+|0[xX][0
 evaluate-commands %sh{
     # Grammar
     keywords='if else case ifx then for while continue break import defer return using'
-    types = 'bool s8 u8 s16 u16 s32 u32 s64 u64 int float float32 float64 string struct Any'
+    types='bool s8 u8 s16 u16 s32 u32 s64 u64 int float float32 float64 string struct Any'
     values='false true null'
-    functions='append free memcpy size_of type_of New'
+    functions='free memcpy size_of type_of New'
 
     join() { sep=$2; eval set -- $1; IFS="$sep"; echo "$*"; }
 
