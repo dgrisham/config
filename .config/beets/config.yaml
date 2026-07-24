@@ -67,12 +67,8 @@ replace:
     '[\s_]{2,}'           : '_'
     '\s'                  : '_'
 
-plugins: inline fetchart scrub lastgenre ftintitle play info edit web ipfs embedart
+plugins: musicbrainz inline fetchart scrub lastgenre ftintitle play info edit web embedart
 fetchart:
     minwidth: 600
-    sources: coverart itunes amazon albumart google wikipedia
 ftintitle:
     format: (feat. {0})
-ipfs:
-  auto: no
-  nocopy: true
