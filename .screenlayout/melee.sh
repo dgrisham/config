@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 screens=("${(@f)$(xrandr | grep -oP '^(DP-[0-9]-[0-9])(?= connected)')}")
 
