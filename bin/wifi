@@ -42,8 +42,14 @@ wifi_disconnect() {
 # leaving just the network name (which may itself contain spaces).
 get_networks() {
     iwctl station "$wifi_dev" get-networks 2>/dev/null | perl -ne '
-        next if /^-+$/ || /Network name/ || /Available networks/ || /^\s*$/;
-        print "$1\n" if /^\s*>?\s*(.*?)\s+\S+\s+\S+\s*$/;
+        s/\e\[[\d;]*[a-zA-Z]//g;
+        next if /^\s*-+\s*$/;
+        next if /Available networks/;
+        next if /Network name/;
+        s/^\s*>?\s*//;
+        s/\s+(?:open|psk|8021x|wep)\s+\S*\s*$//;
+        s/\s+$//;
+        print "$_\n" if length;
     '
 }
 
