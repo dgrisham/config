@@ -1,0 +1,9 @@
+[submodule "src/dwm"]
+	path = src/dwm
+	url = https://github.com/dgrisham/dwm
+[submodule "src/st"]
+	path = src/st
+	url = https://github.com/dgrisham/st
+[submodule "src/dmenu"]
+	path = src/dmenu
+	url = https://github.com/dgrisham/dmenu
