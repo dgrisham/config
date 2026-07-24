@@ -7,3 +7,6 @@
 [submodule "src/dmenu"]
 	path = src/dmenu
 	url = https://github.com/dgrisham/dmenu
+[submodule ".config/kak/plugins/plug.kak"]
+	path = .config/kak/plugins/plug.kak
+	url = https://github.com/andreyorst/plug.kak
