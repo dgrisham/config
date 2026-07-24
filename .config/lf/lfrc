@@ -25,6 +25,9 @@ cmd open ${{
         pdf|cbr)
             zathura "$fx" &
             ;;
+        md)
+            mdterm "$fx"
+            ;;
         # png|jpg|jpeg|webp)
         #     feh -x. "$fx" &
         #     ;;
