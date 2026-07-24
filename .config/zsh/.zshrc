@@ -30,7 +30,7 @@ $%b "
 # History in cache directory:
 HISTSIZE=10000
 SAVEHIST=10000
-HISTFILE="$XDG_CACHE_HOME/zsh/history"
+HISTFILE="$XDG_CONFIG_HOME/zsh/history"
 setopt INC_APPEND_HISTORY
 
 # cd into directory automatically
@@ -40,10 +40,10 @@ export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump"
 
 # Basic auto/tab complete:
 autoload -Uz compinit
-zstyle ':completion:*' menu select
-zmodload zsh/complist
+fpath=($XDG_DATA_HOME/zsh/completions $fpath)
 compinit
-_comp_options+=(globdots)		# Include hidden files.
+zmodload zsh/complist
+zstyle ':completion:*' menu select
 # tab-completion in the middle of file + directory names (e.g. 'ownlo' can tab-complete to 'downloads')
 zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
 
@@ -94,6 +94,17 @@ lfcd () {
 }
 bindkey -s '^o' 'lfcd\n'
 
+
+flirt-widget() {
+  LBUFFER="${LBUFFER}$(flirt -x </dev/tty 2>/dev/tty)"
+  # LBUFFER="${LBUFFER}$(flirt -x </dev/tty)"
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N flirt-widget
+bindkey '^h' flirt-widget
+
 # Edit line in vim with ctrl-e:
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
@@ -102,6 +113,14 @@ bindkey '^e' edit-command-line
 source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
+
+
+# fish-like autosuggestions plugin
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+bindkey '^ ' autosuggest-accept
+# these only work while typing / in 'insert' mode
+bindkey '^f' vi-forward-word # move cursor forward a word, which also has the effect of incremental completion w/ the autosuggestions
+bindkey '^b' vi-backward-word # this doesn't undo any typing/completion, just moves the cursor
 
 # Load zsh-syntax-highlighting; should be last.
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
@@ -112,15 +131,23 @@ ZSH_HIGHLIGHT_STYLES[function]=fg=cyan
 ZSH_HIGHLIGHT_STYLES[command]=fg=cyan
 ZSH_HIGHLIGHT_STYLES[unknown-token]=fg=red
 
+if [ -s /var/log/backup-space.log ] && grep -q "WARNING" /var/log/backup-space.log; then
+    echo "!!!!! Warning: backup drive running low on space !!!!!"
+fi
+
 # enable bash completion
 autoload bashcompinit
 bashcompinit
 
+compdef _wenv __wenv
+
 source $SRC/wenv/wenv
-[[ -n "$WENV" ]] && wenv_exec "$WENV"
+[[ -n $WENV ]] && wenv_source $WENV
+
 
 # load completions
-for completion_file in $XDG_CONFIG_HOME/zsh/completion/*; do source $completion_file; done
+for completion_file in $XDG_DATA_HOME/zsh/completions/bash/*; do source $completion_file; done
 complete _docker_compose docker-compose
 
 [[ -f "$XDG_CONFIG_HOME/zsh/aliases" ]] && source "$XDG_CONFIG_HOME/zsh/aliases"
+[[ -f "$XDG_CONFIG_HOME/zsh/secrets" ]] && source "$XDG_CONFIG_HOME/zsh/secrets"

@@ -13,7 +13,7 @@ bookmark="$(echo "$selection" | dmenu -e -u -p 'bookmark: ')"
 max_length=75
 bookmark_display="${bookmark:0:$max_length}"
 ((${#bookmark} > max_length)) && bookmark_display="${bookmark_display}..."
-directory=$(find $data_dir/bookmarks -mindepth 1 -type d -printf '%P\n' | dmenu -l 10 -p "bookmark '${bookmark_display}' in: ")
+directory=$(find $data_dir/bookmarks -mindepth 1 -type d -not \( -path "$data_dir/bookmarks/.git" -prune \) -printf '%P\n' | dmenu -l 10 -p "bookmark '${bookmark_display}' in: ")
 [[ -z "$directory" ]] && exit 1
 bookmarks_dir=${data_dir}/bookmarks/${directory}
 

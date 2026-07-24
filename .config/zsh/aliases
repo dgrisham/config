@@ -11,7 +11,7 @@ alias lta="ls -lrtAh"
 # convenient cd
 # -------------
 chpwd() { ll }            # cd and ls
-mc() { mv $@ && ${(P)#} } # mv and cd
+# mc() { mv $@ && ${(P)#} } # mv and cd
 # cc() { cp $@ && ${(P)#} } # cp and cd
 
 # compression
@@ -19,6 +19,9 @@ mc() { mv $@ && ${(P)#} } # mv and cd
 alias tarx='tar -xvf'
 tarc() { tar -cvf $1.tar $1 }
 zipd() { zip -rv $1.zip $1 }
+
+# run gdb with init file
+alias gdb='/usr/bin/gdb -q -x $HOME/.gdbinit'
 
 # Shortcuts
 # =========
@@ -40,7 +43,8 @@ loop() {
     while sleep "$time"; do clear; $@; done
 }
 
-rmlink(){ [ -L "$1" ] && rm -v "$1" }
+rm-symlink(){ [ -L "$1" ] && rm -v "$1" }
+alias rml=rm-symlink
 
 usv_enable() {
     [ -z "$1" ] && { echo "missing service arg" >&2; return 1 }

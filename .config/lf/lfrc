@@ -12,16 +12,7 @@ map D ${{
 map Q quit
 map q
 
-cmd n ${{
-    printf "new file's name: "
-    read filename
-    [ $filename != '' ] && kak $filename
-}}
-
-map Q quit
-map q
-
-cmd open ${{
+cmd open_by_extension ${{
     test -L "$f" && f=$(readlink -f "$f")
     fname=$(basename -- "$f")
 
@@ -29,13 +20,22 @@ cmd open ${{
     # try matching file extension first
     case "$ext" in
         png|jpg|jpeg|webp)
-            sxiv "$fx" &
+            feh -x. "$fx" &
             ;;
         cbr|cbz|zip|rar)
             sxcv "$fx" &
             ;;
         pdf|cbr)
             zathura "$fx" &
+            ;;
+        mkv|mp4|avi)
+            mpv "$fx" &
+            ;;
+        html)
+            brave "$fx" &
+            ;;
+        md)
+            mdterm "$fx"
             ;;
         # png|jpg|jpeg|webp)
         #     feh -x. "$fx" &
@@ -45,17 +45,16 @@ cmd open ${{
             ;;
     esac
 }}
-map o open
+map o open_by_extension
 
 cmd open_recursively ${{
     test -d $f && $EDITOR $(find $f -maxdepth 1 -type f)
 }}
 map '*' open_recursively
 
-cmd edit ${{
-    $EDITOR $1
+cmd open ${{
+    $EDITOR $fx
 }}
-map e push :edit<space>
 
 cmd skak ${{
     skak || exit 0
