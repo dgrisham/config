@@ -3,7 +3,5 @@
 ~/.screenlayout/office.sh
 ~/bin/fehbg
 
-setxkbmap -option caps:ctrl_modifier
-
 #~/bin/wifi disconnect
 #sudo dhcpcd
