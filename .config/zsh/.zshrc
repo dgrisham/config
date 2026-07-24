@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 
 # enable more zsh-specific globbing patterns
 # NOTE: this may break certain commands/operations involving ^, ?, [], etc.
@@ -38,8 +38,9 @@ setopt AUTO_CD
 
 # Basic auto/tab complete:
 autoload -Uz compinit
-compinit
 fpath=($XDG_DATA_HOME/zsh/completions $fpath)
+compinit
+zmodload zsh/complist
 zstyle ':completion:*' menu select
 # zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' '+l:|=* r:|=*'
 zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
@@ -101,19 +102,14 @@ autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
 # completion stuff (NOTE: requires installing this plugin)
-source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
 
 # fish-like autosuggestions plugin
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 bindkey '^ ' autosuggest-accept
 # these only work while typing / in 'insert' mode
 bindkey '^f' vi-forward-word # move cursor forward a word, which also has the effect of incremental completion w/ the autosuggestions
 bindkey '^b' vi-backward-word # this doesn't undo any typing/completion, just moves the cursor
-
-# Load zsh-syntax-highlighting; should be last.
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
 
 ZSH_HIGHLIGHT_STYLES[alias]=fg=cyan
 ZSH_HIGHLIGHT_STYLES[builtin]=fg=cyan
@@ -126,10 +122,10 @@ autoload bashcompinit
 bashcompinit
 
 source $SRC/wenv/wenv
-[[ -n "$WENV" ]] && wenv_exec "$WENV"
+[[ -n "$WENV" ]] && wenv_source "$WENV"
 
 # load completions
-for completion_file in $XDG_CONFIG_HOME/zsh/completions/*; do source $completion_file; done
+for completion_file in $XDG_DATA_HOME/zsh/completions/bash/*; do source $completion_file; done
 complete _docker_compose docker-compose
 
 [[ -f "$XDG_CONFIG_HOME/zsh/aliases" ]] && source "$XDG_CONFIG_HOME/zsh/aliases"
