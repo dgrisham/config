@@ -44,4 +44,6 @@ $HOME/bin/fehbg
 # sudo dhcpcd
 # wifi connect &
 
+systemctl --user import-environment DISPLAY XAUTHORITY
+
 exec dwm
