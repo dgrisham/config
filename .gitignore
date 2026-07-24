@@ -155,3 +155,5 @@ bin/bbmp-debug
 bin/caps-to-ctrl
 bin/steam
 bin/stellar
+/.config/dlv/.dbg_history
+/.config/bbmp/playlists
