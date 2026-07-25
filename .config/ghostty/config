@@ -1,0 +1,28 @@
+# Ghostty config
+
+# Font
+font-size = 14
+
+# Theme
+theme = Builtin Tango Dark
+
+# Window
+window-padding-x = 8
+window-padding-y = 8
+window-decoration = true
+macos-titlebar-style = tabs
+
+# No ligatures
+font-feature = -liga
+font-feature = -calt
+
+# Cursor
+cursor-style = bar
+cursor-style-blink = false
+
+# Shell — use full path, skip shell integration for nushell
+shell-integration = none
+command = /opt/homebrew/bin/nu --login --config ~/.config/nushell/config.nu --env-config ~/.config/nushell/env.nu
+
+# macOS specific
+macos-option-as-alt = true
