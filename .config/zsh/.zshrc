@@ -34,7 +34,10 @@ $%b "
 # History in cache directory:
 HISTSIZE=10000
 SAVEHIST=10000
-HISTFILE="$XDG_CACHE_HOME/zsh/history"
+
+histdir="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+mkdir -p "$histdir"
+HISTFILE="$histdir/history"
 setopt INC_APPEND_HISTORY
 
 # cd into directory automatically
