@@ -4,7 +4,7 @@
   imports = [
     # Generated fresh by `nixos-generate-config --root /mnt` at install time.
     # Copy that generated file in next to this one before nixos-install.
-    ./hardware-configuration.nix
+    /etc/nixos/hardware-configuration.nix
   ];
 
   # --- Bootloader ---
@@ -124,6 +124,7 @@
     # playerctl
 
     claude-code
+    nushell
 
     mpv
 
@@ -160,7 +161,7 @@
   users.users.grish = {
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    shell = pkgs.zsh;
+    shell = pkgs.nushell;
     # Throwaway - this string is world-readable in the nix store.
     # Run `passwd` on first login and change it.
     initialPassword = "changeme";
