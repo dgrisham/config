@@ -135,3 +135,10 @@ docker
 /.claude
 /.claude.json
 /.homebrew
+/.azure
+/.cf
+/.config/homebrew
+/.config/nushell/history.*
+/.config/nushell/history.*
+/.config/nushell/history.*
+/.config/nushell/history.*
