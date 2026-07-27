@@ -45,6 +45,12 @@
   # Explicitly off - PulseAudio is being replaced, not run alongside PipeWire's pulse shim.
   services.pulseaudio.enable = false;
 
+  # --- SSH ---
+  services.openssh = {
+    enable = true;
+    settings.PasswordAuthentication = true;
+  };
+
   # --- Bluetooth ---
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
@@ -107,6 +113,9 @@
     pavucontrol
     rsync
     scrot
+    go
+    go-task
+    gcc
     silver-searcher
     unzip
     xclip
@@ -160,12 +169,21 @@
   # --- User account ---
   users.users.grish = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "video" ];
     shell = pkgs.nushell;
     # Throwaway - this string is world-readable in the nix store.
     # Run `passwd` on first login and change it.
     initialPassword = "changeme";
   };
+  services.udev.extraRules = ''
+    ACTION=="add", SUBSYSTEM=="backlight", GROUP="video", MODE="0664"
+  '';
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
   programs.zsh = {
     enable = true;
     autosuggestions.enable = true;
