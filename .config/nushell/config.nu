@@ -24,7 +24,16 @@ $env.config = {
         vi_insert: line
         vi_normal: block
     }
-    hooks: {}
+    hooks: {
+        pre_prompt: [{ ||
+            if (which direnv | is-not-empty) {
+                let result = (^direnv export json | complete)
+                if $result.exit_code == 0 and ($result.stdout | is-not-empty) {
+                    $result.stdout | from json | load-env
+                }
+            }
+        }]
+    }
     keybindings: [
         {
             name: edit_command_line
@@ -258,5 +267,4 @@ alias lrt = ll -t
 
 # wenv — working environment manager
 source ~/src/wenv/nu/wenv.nu
-source ~/.config/wenv/_source.nu
 

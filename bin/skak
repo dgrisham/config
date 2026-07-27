@@ -1,9 +1,9 @@
-#!/usr/bin/env zsh
-
-export AG_PREFIX='ag --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json"'
-fzf --ansi --disabled \
-    --delimiter : \
-    --query "$*" \
-    --bind "start:reload:$AG_PREFIX {q} || true" \
-    --bind "change:reload:$AG_PREFIX {q} || true" \
-    --bind "enter:execute($EDITOR {1} +{2})+reload:$AG_PREFIX {q} || true"
+#!/usr/bin/env nu
+def main [...args: string] {
+    let query = ($args | str join ' ')
+    let reload     = "skak-ag {q}"
+    let bind_start  = $"start:reload:($reload)"
+    let bind_change = $"change:reload:($reload)"
+    let bind_enter  = ("enter:execute(" + $env.EDITOR + " {1} +{2})+reload:" + $reload)
+    ^fzf --ansi --disabled --delimiter ':' --query $query --bind $bind_start --bind $bind_change --bind $bind_enter
+}

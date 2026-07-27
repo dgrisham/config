@@ -8,6 +8,8 @@ const OS_NAME = (sys host).name
 if ($env | get -o TMUX | default "" | is-empty) {
     $env.TERM = "xterm-256color"
 }
+$env.DIRENV_LOG_FORMAT = ""
+$env.SHELL = "/bin/sh"
 $env.DISABLE_AUTO_TITLE = true
 
 # Directories
@@ -25,7 +27,6 @@ $env.XDG_CONFIG_HOME = $"($env.HOME)/.config"
 $env.XDG_CACHE_HOME = $"($env.HOME)/.cache"
 $env.XDG_DOWNLOAD_DIR = $env.DOWNLOADS
 $env.XDG_DESKTOP_DIR = "/dev/null"
-$env.XDG_RUNTIME_DIR = $"/var/run/($env.USER)"
 
 # Defaults
 $env.EDITOR = "kak_session"

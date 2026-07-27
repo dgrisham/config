@@ -106,3 +106,4 @@ src/
 /.config/fossil.db
 /.nix-profile
 /bin/stellar
+/.config/go/telemetry/local
