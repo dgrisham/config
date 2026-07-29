@@ -1,6 +1,7 @@
 # Ghostty config
 
 # Font
+font-family = Inconsolata
 font-size = 14
 
 # Theme
@@ -26,3 +27,6 @@ command = /opt/homebrew/bin/nu --login --config ~/.config/nushell/config.nu --en
 
 # macOS specific
 macos-option-as-alt = true
+
+# Disable link detection (no URL/path highlighting or hover effects)
+link-url = false
