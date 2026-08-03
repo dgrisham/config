@@ -61,6 +61,16 @@ $env.HOMEBREW_ROOT = (if $OS_NAME == "Darwin" {
     ""
 })
 
+# Ghostty launches nu by fixed path (its config has no conditionals), so pin
+# a stable link to whichever prefix this machine uses.
+if $env.HOMEBREW_ROOT != "" {
+    let nu_bin = $"($env.HOMEBREW_ROOT)/bin/nu"
+    let nu_link = $"($env.HOME)/.local/bin/nu"
+    if ($nu_bin | path exists) and (($nu_link | path expand) != $nu_bin) {
+        ^ln -sf $nu_bin $nu_link
+    }
+}
+
 # PATH — common entries
 $env.PATH = (
     $env.PATH | prepend [

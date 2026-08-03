@@ -14,12 +14,30 @@ if [[ $OSTYPE == darwin* ]]; then
         export HOMEBREW_ROOT="$HOME/.homebrew"
     fi
 
+    # Ghostty launches nu by fixed path (its config has no conditionals), so pin
+    # a stable link to whichever prefix this machine uses.
+    [[ -x $HOMEBREW_ROOT/bin/nu ]] && ln -sf "$HOMEBREW_ROOT/bin/nu" "$HOME/.local/bin/nu"
+
+    # On macOS nushell reads "~/Library/Application Support/nushell" unless
+    # XDG_CONFIG_HOME is set — which happens further down this file, far too
+    # late for a login nu to locate its own config. Point the macOS path at the
+    # real one. -n matters here: the target is a symlink to a *directory*, and
+    # without it ln would descend and nest a link inside. Only touch it if it's
+    # already a link or absent, so a real config dir is never clobbered.
+    nu_cfg="$HOME/Library/Application Support/nushell"
+    [[ -L $nu_cfg || ! -e $nu_cfg ]] && ln -sfn "$HOME/.config/nushell" "$nu_cfg"
+    unset nu_cfg
+
     export PATH="$BIN:$HOME/.local/bin:$HOMEBREW_ROOT/bin:$PATH"
 
     export PATH="$HOME/Library/Python/3.9/bin:$PATH"
 
     export PATH="$(brew --prefix rustup)/bin:$PATH"
     export PATH="$HOME/.cargo/bin:$PATH"
+
+    export PATH="$(brew --prefix)/opt/gnu-sed/libexec/gnubin:$PATH"
+
+    export NODE_EXTRA_CA_CERTS=$HOME/.macos-ca.pem
 fi
 
 

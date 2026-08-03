@@ -113,13 +113,13 @@ src/
 .config/gh-dash
 .config/iterm2
 
-Applications
-Desktop
-Documents
-Library
-Movies
-Music
-Pictures
+/Applications/
+/Desktop/
+/Documents/
+/Library/
+/Movies/
+/Music/
+/Pictures/
 docker
 .rustup
 .grok
@@ -142,3 +142,7 @@ docker
 /.config/nushell/history.*
 /.config/nushell/history.*
 /.config/nushell/history.*
+/.m2/repository
+/.config/entire
+/.aicodemetrics
+/.macos-ca.pem

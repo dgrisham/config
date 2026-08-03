@@ -8,7 +8,6 @@ $env.config = {
     table: {
         mode: rounded
         padding: { left: 1 right: 1 }
-        missing_value_symbol: "<null>"
     }
     edit_mode: vi
     history: {
@@ -34,9 +33,7 @@ $env.config = {
                 }
             }
         }]
-        display_output: { table }
     }
-    footer_mode: never
     keybindings: [
         {
             name: edit_command_line

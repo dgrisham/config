@@ -23,7 +23,7 @@ cursor-style-blink = false
 
 # Shell — use full path, skip shell integration for nushell
 shell-integration = none
-command = /opt/homebrew/bin/nu --login --config ~/.config/nushell/config.nu --env-config ~/.config/nushell/env.nu
+command = ~/.local/bin/nu --login
 
 # macOS specific
 macos-option-as-alt = true
