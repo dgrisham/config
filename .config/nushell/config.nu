@@ -4,6 +4,7 @@
 # Shell settings
 $env.config = {
     show_banner: false
+    footer_mode: never
     datetime_format: { normal: "%Y-%m-%d %H:%M" table: "%Y-%m-%d %H:%M" }
     table: {
         mode: rounded
