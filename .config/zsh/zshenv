@@ -1,0 +1,7 @@
+export ZDOTDIR="$HOME/.config/zsh"
+
+# sourcing here works for non-login shells
+if [[ -z $ZPROFILE_SOURCED ]]; then
+    export ZPROFILE_SOURCED=1
+    source "$ZDOTDIR/profile"
+fi
