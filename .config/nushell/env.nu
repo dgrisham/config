@@ -61,6 +61,16 @@ $env.HOMEBREW_ROOT = (if $OS_NAME == "Darwin" {
     ""
 })
 
+# Ghostty launches nu by fixed path (its config has no conditionals), so pin
+# a stable link to whichever prefix this machine uses.
+if $env.HOMEBREW_ROOT != "" {
+    let nu_bin = $"($env.HOMEBREW_ROOT)/bin/nu"
+    let nu_link = $"($env.HOME)/.local/bin/nu"
+    if ($nu_bin | path exists) and (($nu_link | path expand) != $nu_bin) {
+        ^ln -sf $nu_bin $nu_link
+    }
+}
+
 # PATH — common entries
 $env.PATH = (
     $env.PATH | prepend [
@@ -102,7 +112,7 @@ $env.PROMPT_COMMAND = {||
     let wenv_part = if ($env | get -o WENV | is-not-empty) {
         $"(ansi reset)\(($env.WENV)\)\n"
     } else {
-        ""
+        "\n"
     }
     let git_branch = (do { ^git branch --show-current } | complete)
     let git_part = if $git_branch.exit_code == 0 and ($git_branch.stdout | str trim | is-not-empty) {
@@ -119,6 +129,11 @@ $env.PROMPT_INDICATOR_VI_INSERT = "> "
 $env.PROMPT_INDICATOR_VI_NORMAL = "> "
 $env.PROMPT_COMMAND_RIGHT = ""
 
+# Module search paths
+$env.NU_LIB_DIRS = [
+    ($nu.default-config-dir | path join 'scripts')
+    ($env.HOME | path join 'Library' 'Application Support' 'nushell' 'scripts')
+]
 
 # White filenames in ls
 $env.LS_COLORS = "di=1;97:ln=97:fi=97:no=97:ex=97:so=97:pi=97:bd=97:cd=97:su=97:sg=97:tw=97:ow=97"

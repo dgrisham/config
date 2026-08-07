@@ -4,20 +4,22 @@
 # Shell settings
 $env.config = {
     show_banner: false
+    footer_mode: never
     datetime_format: { normal: "%Y-%m-%d %H:%M" table: "%Y-%m-%d %H:%M" }
     table: {
-        mode: none
+        mode: rounded
         padding: { left: 1 right: 1 }
     }
     edit_mode: vi
     history: {
         max_size: 10000
         file_format: "sqlite"
+        isolation: true
     }
     completions: {
         case_sensitive: false
         partial: true
-        algorithm: "prefix"
+        algorithm: "substring"
         external: { enable: true }
     }
     cursor_shape: {
@@ -244,8 +246,8 @@ def ll [
             $"($bytes | fill --alignment right --width 5)  B"
         }
         $row | update size $formatted
-    } | update name {|row| if ($row.type == "dir") { $"(ansi { fg: "#ffffff" attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: "#ffffff" })($row.name)(ansi reset)" }} | select name mode user group size modified created)
-    if $time and $reverse {
+    } | update name {|row| $row.name | path basename} | select name type mode user group size modified created)
+    let sorted = if $time and $reverse {
         $cols | sort-by modified --reverse
     } else if $time {
         $cols | sort-by modified
@@ -254,6 +256,9 @@ def ll [
     } else {
         $cols
     }
+    $sorted | update name {|row|
+        if ($row.type == "dir") { $"(ansi { fg: '#ffffff' attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: '#ffffff' })($row.name)(ansi reset)" }
+    } | reject type
 }
 
 alias la = ll -a
@@ -268,3 +273,8 @@ alias lrt = ll -t
 # wenv — working environment manager
 source ~/src/wenv/nu/wenv.nu
 
+# Carapace Completions
+
+let carapace_completer = {|spans| carapace $spans.0 nushell ...$spans | from json }
+$env.config.completions.external.enable = true
+$env.config.completions.external.completer = $carapace_completer
