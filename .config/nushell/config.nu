@@ -13,11 +13,12 @@ $env.config = {
     history: {
         max_size: 10000
         file_format: "sqlite"
+        isolation: true
     }
     completions: {
         case_sensitive: false
         partial: true
-        algorithm: "prefix"
+        algorithm: "substring"
         external: { enable: true }
     }
     cursor_shape: {
