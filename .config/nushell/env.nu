@@ -93,6 +93,11 @@ if $OS_NAME == "Darwin" {
     if $rustup_bin.exit_code == 0 {
         $env.PATH = ($env.PATH | prepend $"($rustup_bin.stdout | str trim)/bin")
     }
+
+    let gcloud_bin = $"($env.HOMEBREW_ROOT)/share/google-cloud-sdk/bin"
+    if ($gcloud_bin | path exists) {
+        $env.PATH = ($env.PATH | prepend $gcloud_bin | uniq)
+    }
 }
 
 # FZF

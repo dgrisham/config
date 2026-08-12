@@ -83,6 +83,8 @@ alias tm = tmux attach
 alias lg = lazygit
 alias apv = mpv --vid=no
 
+alias claude = claude --dangerously-skip-permissions
+
 # fd
 def --wrapped fd [...args] {
     let fd_bin = if ("/opt/homebrew/bin/fd" | path exists) {
@@ -275,6 +277,19 @@ source ~/src/wenv/nu/wenv.nu
 
 # Carapace Completions
 
-let carapace_completer = {|spans| carapace $spans.0 nushell ...$spans | from json }
 $env.config.completions.external.enable = true
-$env.config.completions.external.completer = $carapace_completer
+
+# Returning null falls back to nushell's own file completion — needed when
+# carapace has no spec for a command, else it completes to nothing at all.
+if (which carapace | is-not-empty) {
+    $env.config.completions.external.completer = {|spans|
+        let out = (carapace $spans.0 nushell ...$spans | complete)
+        if $out.exit_code != 0 or ($out.stdout | is-empty) { return null }
+        let result = ($out.stdout | from json)
+        if ($result | is-empty) or ($result | where value =~ '^-.*ERR$' | is-not-empty) {
+            null
+        } else {
+            $result
+        }
+    }
+}
