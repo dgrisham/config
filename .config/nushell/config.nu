@@ -248,7 +248,7 @@ def ll [
             $"($bytes | fill --alignment right --width 5)  B"
         }
         $row | update size $formatted
-    } | update name {|row| $row.name | path basename} | select name type mode user group size modified created)
+    } | update name {|row| $row.name | path basename} | select name type target mode user group size modified created)
     let sorted = if $time and $reverse {
         $cols | sort-by modified --reverse
     } else if $time {
@@ -259,15 +259,20 @@ def ll [
         $cols
     }
     $sorted | update name {|row|
-        if ($row.type == "dir") { $"(ansi { fg: '#ffffff' attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: '#ffffff' })($row.name)(ansi reset)" }
-    } | reject type
+        let colored = if ($row.type == "dir") { $"(ansi { fg: '#ffffff' attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: '#ffffff' })($row.name)(ansi reset)" }
+        if $row.type == "symlink" and ($row.target | is-not-empty) {
+            $"($colored) -> (ansi { fg: '#5fafff' })($row.target)(ansi reset)"
+        } else {
+            $colored
+        }
+    } | reject type target
 }
 
 alias la = ll -a
-alias lt = ll -tr
+alias lt = ll -t
 alias lta = ll -at
-alias ltr = ll -t
-alias lrt = ll -t
+alias lrt = ll -rt
+alias ltr = ll -rt
 
 # List available themes
 # use ~/.config/nushell/themes.nu *
