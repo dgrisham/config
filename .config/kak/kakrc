@@ -440,16 +440,16 @@ plug "dgrisham/kakoune-surround" config %{
     map global surround-tag c ':change-surrounding-tag<ret>' -docstring 'change enclosing tags'
 }
 
-plug "Delapouite/kakoune-buffers" config %{
-    hook global WinDisplay .* info-buffers
-    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
-    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
-    alias global bd delete-buffer
-    alias global bf buffer-first
-    alias global bl buffer-last
-    alias global bo buffer-only
-    alias global bo! buffer-only-force
-}
+#plug "Delapouite/kakoune-buffers" config %{
+#    hook global WinDisplay .* info-buffers
+#    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
+#    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
+#    alias global bd delete-buffer
+#    alias global bf buffer-first
+#    alias global bl buffer-last
+#    alias global bo buffer-only
+#    alias global bo! buffer-only-force
+#}
 
 # LSP
 # ===
