@@ -1,0 +1,156 @@
+#!/usr/bin/env nu
+# lrc-fill — fetch LRCLIB synced/plain lyrics as .lrc sidecars for a music library.
+#
+#   lrc-fill                       # whole-library incremental (only new/missing tracks)
+#   lrc-fill --root DIR            # just that folder (e.g. a freshly-added album)
+#   lrc-fill --retry-miss          # also re-attempt tracks previously found to have no lyrics
+#   lrc-fill --workers 6           # concurrent fetchers (default 4)
+#
+# "Done" = a sibling .lrc exists on disk. Misses (instrumental/none) are remembered in a
+# sqlite cache so reruns don't re-query them:  ~/.cache/lrc-fill/ledger.db
+# The cache is disposable — delete it and reruns just re-check misses (slower). No venv, only ffprobe.
+
+const UA = "lrc-fill/1.0 (https://lrclib.net)"
+
+def sidecar [p: string] {
+  let x = ($p | path parse)
+  {parent: $x.parent, stem: $x.stem, extension: "lrc"} | path join
+}
+
+# Strip (feat …)/remaster/version noise so LRCLIB search matches.
+def norm-title [t: string] {
+  $t
+  | str replace -r -a '(?i)\s*[\(\[]\s*(feat|ft|featuring|with)\b[^)\]]*[\)\]]' ''
+  | str replace -r '(?i)\s*-\s*(remaster(ed)?|live|mono|stereo)\b.*$' ''
+  | str replace -r -a '(?i)\s*[\(\[][^)\]]*(remaster|version|edit|mix|live|mono|stereo)[^)\]]*[\)\]]' ''
+  | str trim
+}
+
+# Case-insensitive tag lookup (mp3 tags are lowercase, FLAC Vorbis are UPPERCASE).
+def tag-ci [tags: record, name: string] {
+  let cols = ($tags | columns | where {|c| ($c | str lowercase) == $name })
+  if ($cols | is-empty) { "" } else { $tags | get ($cols | first) | into string }
+}
+
+def read-tags [path: string] {
+  let j = (try { ^ffprobe -v quiet -print_format json -show_format -- $path | from json } catch { null })
+  if $j == null { return null }
+  let tags = ($j.format?.tags? | default {})
+  {
+    artist: (tag-ci $tags "artist")
+    title:  (tag-ci $tags "title")
+    album:  (tag-ci $tags "album")
+    dur:    (try { $j.format.duration | into float | math round } catch { 0 })
+  }
+}
+
+# HTTP GET with retry/backoff on 429/5xx. Returns parsed body, or null.
+def lrc-http [url: string, params: record] {
+  let full = $"($url)?($params | url build-query)"
+  mut delay = 1
+  for _ in 0..3 {
+    let r = (try { http get -f -e -m 15sec --headers {User-Agent: $UA} $full } catch { null })
+    if $r == null { sleep ($delay * 1sec); $delay = ($delay * 2); continue }
+    if $r.status == 200 { return $r.body }
+    if $r.status == 404 { return null }
+    if ($r.status in [429 500 502 503 504]) { sleep ($delay * 1sec); $delay = ($delay * 2); continue }
+    return null
+  }
+  null
+}
+
+# Resolve one track against LRCLIB (exact get, then normalized search). Returns {status, lrc}.
+def lrclib [artist: string, title: string, album: string, dur: int] {
+  let g = (lrc-http "https://lrclib.net/api/get" {artist_name: $artist track_name: $title album_name: $album duration: $dur})
+  if $g != null {
+    if ($g.instrumental? | default false) { return {status: "instrumental" lrc: null} }
+    let s = ($g.syncedLyrics? | default "")
+    if ($s | is-not-empty) { return {status: "synced" lrc: $s} }
+    let p = ($g.plainLyrics? | default "")
+    if ($p | is-not-empty) { return {status: "plain" lrc: $p} }
+  }
+  let queries = ([$title (norm-title $title)] | where {|q| $q | is-not-empty } | uniq)
+  mut best_plain = ""
+  for q in $queries {
+    let res = (lrc-http "https://lrclib.net/api/search" {artist_name: $artist track_name: $q})
+    if ($res != null) and (($res | length) > 0) {
+      let synced_hits = ($res | where {|r| ($r.syncedLyrics? | default "") | is-not-empty })
+      if ($synced_hits | is-not-empty) { return {status: "synced" lrc: ($synced_hits | first | get syncedLyrics)} }
+      if ($best_plain | is-empty) {
+        let plain_hits = ($res | where {|r| ($r.plainLyrics? | default "") | is-not-empty })
+        if ($plain_hits | is-not-empty) { $best_plain = ($plain_hits | first | get plainLyrics) }
+      }
+    }
+  }
+  if ($best_plain | is-not-empty) { return {status: "plain" lrc: $best_plain} }
+  {status: "none" lrc: null}
+}
+
+# Strip NetEase credit lines / LRC id-tags.
+def clean-lrc [text: string] {
+  $text
+  | lines
+  | where {|ln|
+      let c = ($ln | str replace -r '^(\s*\[\d{1,2}:\d{2}(?:[.:]\d+)?\])+\s*' '' | str trim)
+      not (($c =~ '^(作词|作曲|编曲|制作人|制作|混音|母带|和声|录音|监制|出品|演唱|词|曲)\s*[:：]') or ($ln =~ '^\s*\[(ti|ar|al|au|by|length|re|ve|offset):'))
+    }
+  | str join "\n"
+  | str trim
+}
+
+def main [
+  --root: string = ""                        # limit to this folder (default: whole library)
+  --retry-miss                               # re-attempt tracks previously found to have no lyrics
+  --workers: int = 4                         # concurrent fetchers
+  --lib: string = "~/media/music/library"    # library root
+] {
+  let lib = ($lib | path expand)
+  let root = (if ($root | is-empty) { $lib } else { $root | path expand })
+  let cache_dir = ("~/.cache/lrc-fill" | path expand)
+  mkdir $cache_dir
+  let db = ($cache_dir | path join "ledger.db")
+  open $db | query db "CREATE TABLE IF NOT EXISTS res(path TEXT PRIMARY KEY, size INT, mtime REAL, artist TEXT, title TEXT, status TEXT, source TEXT, lrc TEXT, ts REAL)"
+
+  let missset = (if $retry_miss { {} } else {
+    open $db | query db "SELECT path FROM res WHERE status IN ('instrumental','none','no_meta')" | get path | group-by {|x| $x }
+  })
+
+  let audio = ([mp3 m4a flac] | each {|e| glob $"($root)/**/*.($e)" } | flatten)
+  let todo = ($audio
+    | where {|p| not ((sidecar $p) | path exists) }
+    | where {|p| $retry_miss or (not ($p in $missset)) })
+
+  print $"library: ($lib)"
+  print $"scope:   ($root)"
+  print $"audio: ($audio | length)   already-done/cached-miss skipped: (($audio | length) - ($todo | length))   todo: ($todo | length)"
+  if ($todo | is-empty) { print "nothing to fetch."; return }
+
+  let results = ($todo | par-each -t $workers {|p|
+    try {
+      let t = (read-tags $p)
+      if ($t == null) or ($t.artist == "") or ($t.title == "") {
+        {path: $p status: "no_meta" source: ""}
+      } else {
+        let r = (lrclib $t.artist $t.title $t.album $t.dur)
+        if ($r.lrc != null) {
+          ((clean-lrc $r.lrc) + "\n") | save --raw --force (sidecar $p)
+          {path: $p status: $r.status source: "lrclib"}
+        } else {
+          {path: $p status: $r.status source: ""}
+        }
+      }
+    } catch {
+      {path: $p status: "err" source: ""}
+    }
+  })
+
+  let now = (date now | format date "%s" | into int)
+  for r in $results {
+    open $db | query db "INSERT OR REPLACE INTO res(path,status,source,ts) VALUES (?,?,?,?)" --params [$r.path $r.status $r.source $now]
+  }
+
+  print ""
+  print ($results | group-by status | transpose status n | update n {|x| $x.n | length } | sort-by n --reverse)
+  let wrote = ($results | where status in ["synced" "plain"] | length)
+  print $"wrote ($wrote) .lrc sidecars; misses cached for next run."
+}
