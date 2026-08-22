@@ -1,3 +1,7 @@
+evaluate-commands %sh{
+    find "$kak_runtime/rc" -name "*.kak" -printf "source '%p'\n"
+}
+
 ## clippy -> dilbert
 set-option global ui_options terminal_set_title=false terminal_assistant=dilbert
 
