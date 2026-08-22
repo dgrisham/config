@@ -1,0 +1,9 @@
+#!/usr/bin/env nu
+def main [...args: string] {
+    let query = ($args | str join ' ')
+    let reload     = "skak-ag {q}"
+    let bind_start  = $"start:reload:($reload)"
+    let bind_change = $"change:reload:($reload)"
+    let bind_enter  = ("enter:execute(" + $env.EDITOR + " {1} +{2})+reload:" + $reload)
+    ^fzf --ansi --disabled --delimiter ':' --query $query --bind $bind_start --bind $bind_change --bind $bind_enter
+}

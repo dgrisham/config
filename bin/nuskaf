@@ -1,0 +1,3 @@
+#!/usr/bin/env nu
+^find . -type f ! -path '*/.git/*' ! -path '*/node_modules/*'
+| ^fzf --ansi --delimiter ':' --bind ("enter:execute(" + $env.EDITOR + " {1})")
