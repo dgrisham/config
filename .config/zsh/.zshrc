@@ -114,6 +114,7 @@ autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
 # completion stuff (NOTE: requires installing this plugin)
+source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh 2>/dev/null
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
 
