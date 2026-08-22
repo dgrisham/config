@@ -94,6 +94,7 @@
     jq
     yt-dlp
     pulseaudio   # for `pactl` (bin/btmenu) - client tools only, server is PipeWire
+    bluez        # for `bluetoothctl`
     #runit
 
     lazygit
@@ -134,6 +135,7 @@
 
     claude-code
     nushell
+    http-nu
 
     mpv
 
@@ -178,6 +180,13 @@
   services.udev.extraRules = ''
     ACTION=="add", SUBSYSTEM=="backlight", GROUP="video", MODE="0664"
   '';
+
+  programs.nix-ld.enable = true;
+
+  programs.tmux = {
+    enable = true;
+    plugins = with pkgs.tmuxPlugins; [ urlview ];
+  };
 
   programs.direnv = {
     enable = true;
