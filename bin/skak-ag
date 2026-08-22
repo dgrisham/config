@@ -1,0 +1,9 @@
+#!/usr/bin/env nu
+def main [...query: string] {
+    let q = ($query | str join ' ')
+    if not ($q | is-empty) {
+        try {
+            ^ag --color --hidden --ignore node_modules --ignore .git --ignore '*tags*' --ignore '*.kaktmp' --ignore go.mod --ignore go.sum --ignore 'package*.json' $q
+        } catch {|_| }
+    }
+}

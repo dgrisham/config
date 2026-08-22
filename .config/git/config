@@ -1,0 +1,7 @@
+[user]
+	email = dmgrisham@gmail.com
+	name = David Grisham
+[pull]
+	rebase = false
+[url "git@github.com:"]
+	pushInsteadOf = https://github.com/

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+~/.screenlayout/office.sh
+~/bin/fehbg
+
+#~/bin/wifi disconnect
+#sudo dhcpcd

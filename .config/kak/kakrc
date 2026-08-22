@@ -1,3 +1,7 @@
+evaluate-commands %sh{
+    find "$kak_runtime/rc" -name "*.kak" -printf "source '%p'\n"
+}
+
 ## clippy -> dilbert
 set-option global ui_options terminal_set_title=false terminal_assistant=dilbert
 
@@ -219,9 +223,9 @@ hook global BufSetOption filetype=python %!
     map global user d 'iprint(f": {}")<esc>h<a-a>bs(?=[:}])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
 !
 
-declare-user-mode write-code-template
-
 hook global BufSetOption filetype=c %@
+    declare-user-mode write-code-template
+
     map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 
@@ -242,26 +246,57 @@ hook global BufSetOption filetype=c %@
     map global normal <c-t> <a-i>w:ctags-search<ret> -docstring 'ctags search'
 
     hook buffer -group format BufWritePost .* %{ evaluate-commands ctags-generate; edit! }
+
+hook global BufSetOption filetype=go %@
+    hook global KakBegin .* %{
+        evaluate-commands %sh{
+            path="$PWD"
+            while [ "$path" != "$HOME" ] && [ "$path" != "/" ]; do
+                if [ -e "./tags" ]; then
+                    printf "%s\n" "set-option -add current ctagsfiles %{$path/tags}"
+                    break
+                else
+                    cd ..
+                    path="$PWD"
+                fi
+            done
+        }
+    }
+    map global normal <c-t> <a-i>w:ctags-search<ret> -docstring 'ctags search'
+
+    map global user i ':nop %sh{ goimports -e -w "$kak_buffile" }<ret>' -docstring 'run goimports on this buffer'
+    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
+    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile"; gofumpt -e -w "$kak_buffile" }; ctags-generate; edit! }
+
+    declare-user-mode write-code-template
+    map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
+    map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global write-code-template b '<a-i>p<a-s>I* <esc>A *<esc>)<space>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 @
 
 hook global BufSetOption filetype=javascript %!
-    map global user d 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
+    declare-user-mode write-code-template
+    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
+    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
+    map global user w 'oconsole.log(":", );<esc>hh<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring "debug print statement"
+!
 
+hook global BufSetOption filetype=jai %!
+    declare-user-mode write-code-template
     map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxypjr/I<esc><a-l>Hr*;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
-hook global BufSetOption filetype=jai %!
-    map global write-code-template c 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/I<esc><a-l>Hr*;' -docstring 'header comment block'
-    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
-!
-
 hook global BufSetOption filetype=(sh|yaml) %!
+    declare-user-mode write-code-template
     map global write-code-template c 'I# <esc>A #<esc>xyPxI<esc><a-l>r#xykP' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
 
 hook global BufSetOption filetype=sql %!
+    declare-user-mode write-code-template
     map global write-code-template c 'I-- <esc>A --<esc>xyPHr-jxypj<a-h>r-;' -docstring 'header comment block'
     map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
 !
@@ -440,111 +475,13 @@ plug "dgrisham/kakoune-surround" config %{
     map global surround-tag c ':change-surrounding-tag<ret>' -docstring 'change enclosing tags'
 }
 
-#plug "Delapouite/kakoune-buffers" config %{
-#    hook global WinDisplay .* info-buffers
-#    map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
-#    map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
-#    alias global bd delete-buffer
-#    alias global bf buffer-first
-#    alias global bl buffer-last
-#    alias global bo buffer-only
-#    alias global bo! buffer-only-force
-#}
-
-# LSP
-# ===
-
-eval %sh{kak-lsp}
-lsp-enable
-
-# lsp-diagnostic-lines-disable global
-lsp-inline-diagnostics-disable global
-# lsp-inlay-hints-enable global
-# lsp-inlay-code-lenses-enable global
-
-map global user l ':enter-user-mode lsp<ret>' -docstring 'LSP mode'
-
-map global insert <tab> '<a-;>:try lsp-snippets-select-next-placeholders catch %{ execute-keys -with-hooks <lt>tab> }<ret>' -docstring 'Select next snippet placeholder'
-
-map global object a '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
-map global object <a-a> '<a-semicolon>lsp-object<ret>' -docstring 'LSP any symbol'
-map global object f '<a-semicolon>lsp-object Function Method<ret>' -docstring 'LSP function or method'
-map global object t '<a-semicolon>lsp-object Class Interface Struct<ret>' -docstring 'LSP class interface or struct'
-map global object d '<a-semicolon>lsp-diagnostic-object --include-warnings<ret>' -docstring 'LSP errors and warnings'
-map global object D '<a-semicolon>lsp-diagnostic-object<ret>' -docstring 'LSP errors'
-
-hook global BufSetOption filetype=go %@
-    map global write-code-template d 'ofmt.Printf(": %v\n", )<esc>h<a-a>bs(?=[:)])<ret>:lineindent -1<ret>i' -docstring 'Printf debug statement'
-    map global write-code-template l 'alog.WithFields(logrus.Fields{"error": err}).Error("")<esc><ret>:lineindent -1<ret>hhi' -docstring 'logrus error'
-    map global write-code-template b 'I* <esc>A *<esc>xyPI<esc>r/l<a-l>r*jxyphr/h<a-h>r*;' -docstring 'header comment block'
-    map global user w ':enter-user-mode write-code-template<ret>' -docstring 'write code template'
-
-    hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile" }; edit! }
-    # define-command goimports -docstring "goimports" %{
-    #     evaluate-commands %sh{
-    #         goimports -e -w "$kak_buffile"
-    #     }
-    # }
-    # map global user i :goimports<ret>
-
-    # hook buffer -group format BufWritePost .* %{ evaluate-commands %sh{ goimports -e -w "$kak_buffile" }; git update-diff; edit! }
-
-    set-option buffer lsp_servers %{
-        [gopls]
-        root_globs = ["go.mod", ".git", "Gopkg.toml"]
-        settings_section = "gopls"
-        [gopls.settings.gopls]
-        "formatting.gofumpt" = true
-    }
-
-    declare-option bool templ_lsp_navigating
-    declare-option str  templ_lsp_target_symbol
-    # Custom lsp-definition command to handle templ files
-    define-command lsp-definition-templ -override -docstring "Go to definition, redirecting _templ.go to .templ" %{
-        set-option global templ_lsp_navigating true
-        execute-keys <a-i>w
-        set-option global templ_lsp_target_symbol %val{selection}
-        lsp-definition
-    }
-    # Hook to trigger templ-goto-source on buffer switch
-    hook global WinDisplay .*_templ.go %{
-        evaluate-commands %sh{
-            if [ "${kak_opt_templ_lsp_navigating}" = "true" ]; then
-                echo "templ-goto-source"
-            fi
-        }
-        set-option global templ_lsp_navigating false
-        set-option global templ_lsp_target_symbol ''
-    }
-    define-command templ-goto-source -override  -docstring "Go to the original .templ file from a generated _templ.go file" %{
-        evaluate-commands %sh{
-            base_dir="$(pwd)/"
-            file_path="${kak_buffile#$base_dir}"
-            if [[ "$file_path" =~ _templ\.go$ ]]; then
-                templ_file="${file_path%_templ.go}.templ"
-                if [ -f "$templ_file" ]; then
-                    echo "edit $templ_file"
-                    echo "lsp-goto-document-symbol ${kak_opt_templ_lsp_target_symbol}"
-                else
-                    echo "echo -debug 'No corresponding .templ file found for $file_path'"
-                fi
-            else
-                echo "echo -debug '$file_path Not a _templ.go file'"
-            fi
-        }
-    }
-
-    # Optional: Map the command to a key
-    unmap global lsp d
-    map global lsp d ':lsp-definition-templ<ret>' -docstring 'Go to definition (Templ-aware)'
-@
-
-hook -group lsp-filetype-templ global BufSetOption filetype=templ %{
-    set-option buffer lsp_servers %{
-        [templ]
-        filetypes = ["templ"]
-        root_globs = ["go.mod", ".git", "Gopkg.toml"]
-        command = "templ"
-        args = ["lsp"]
-    }
-}
+# plug "Delapouite/kakoune-buffers" config %{
+#     hook global WinDisplay .* info-buffers
+#     map global user a ':enter-buffers-mode<ret>' -docstring 'buffers mode'
+#     map global user A ':enter-user-mode -lock buffers<ret>' -docstring 'buffers mode (lock)'
+#     alias global bd delete-buffer
+#     alias global bf buffer-first
+#     alias global bl buffer-last
+#     alias global bo buffer-only
+#     alias global bo! buffer-only-force
+# }

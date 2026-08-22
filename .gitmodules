@@ -1,0 +1,12 @@
+[submodule "src/dwm"]
+	path = src/dwm
+	url = https://github.com/dgrisham/dwm
+[submodule "src/st"]
+	path = src/st
+	url = https://github.com/dgrisham/st
+[submodule "src/dmenu"]
+	path = src/dmenu
+	url = https://github.com/dgrisham/dmenu
+[submodule ".config/kak/plugins/plug.kak"]
+	path = .config/kak/plugins/plug.kak
+	url = https://github.com/andreyorst/plug.kak

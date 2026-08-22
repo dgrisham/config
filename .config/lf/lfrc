@@ -1,4 +1,5 @@
 set promptfmt "\033[36m%u@%h\033[0m:\033[93m%d\033[0m\033[1m%f\033[0m"
+
 set shell zsh
 set shellopts '-ey'
 set ifs "\n"
@@ -20,7 +21,7 @@ cmd open_by_extension ${{
     # try matching file extension first
     case "$ext" in
         png|jpg|jpeg|webp)
-            feh -x. "$fx" &
+            sxiv "$fx" &
             ;;
         cbr|cbz|zip|rar)
             sxcv "$fx" &

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 export DISPLAY=:0
 data_dir="${XDG_DATA_HOME:-$HOME/.local/share}"

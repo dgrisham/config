@@ -2,6 +2,6 @@
 
 [[ -z "$WENV" ]] && { \kak $@ ; return 0 }
 local server_name=$(sed 's/\//-/g' <<< $WENV)
-local socket_file=$(grep ^"$server_name"$ <<< $(\kak -l))
-[[ $socket_file == "" ]] && \kak -d -s $server_name &
+local socket_file=$(grep "^$server_name\$" <<< $(\kak -l))
+[[ $socket_file == "" ]] && \kak -d -s $server_name -E "cd $WENV_DIR" &
 \kak -c $server_name $@

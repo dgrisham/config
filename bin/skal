@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+export AG_PREFIX='ag -l --color --hidden --ignore node_modules --ignore .git --ignore "*tags*" --ignore "*.kaktmp" --ignore go.mod --ignore go.sum --ignore "package*.json"'
+fzf --ansi --disabled \
+    --query "$*" \
+    --bind "start:reload:$AG_PREFIX {q} || true" \
+    --bind "change:reload:$AG_PREFIX {q} || true" \
+    --bind "enter:execute($EDITOR {1})+reload:$AG_PREFIX {q} || true"

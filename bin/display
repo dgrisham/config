@@ -1,0 +1,13 @@
+#!/usr/bin/env zsh
+
+export DISPLAY=:0
+
+layouts_dir="$HOME/.screenlayout"
+
+layout=$(find $HOME/.screenlayout -name '*.sh' -execdir basename -s '.sh' {} + | dmenu -p 'action: ')
+layout_script="$layouts_dir/${layout}.sh"
+[[ ! -f "$layout_script" ]] && { herbe "Invalid layout '$layout'"; exit 1 }
+
+exec $layout_script
+
+$HOME/bin/fehbg

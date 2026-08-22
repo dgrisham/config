@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 sysresources=/etc/X11/xinit/.Xresources
 sysmodmap=/etc/X11/xinit/.Xmodmap
@@ -36,14 +36,16 @@ xrandr --dpi 100
 xcompmgr -c -l0 -t0 -r0 -o.00 &
 
 # hide mouse cursor after 1 second of inactivity
-unclutter -idle 1 -root &
+unclutter --timeout 1 --fork
 
-setxkbmap -option caps:ctrl_modifier
+#xrandr | grep '^DP-[0-9]-[0-9] connected' && $HOME/.screenlayout/office.sh
+
 $HOME/bin/fehbg
-redshift &
 
-# laptop
-# sudo brightnessctl s 96000
+# sudo dhcpcd
 # wifi connect &
+
+export XDG_RUNTIME_DIR=/run/user/$(id -u)
+systemctl --user import-environment DISPLAY XAUTHORITY XDG_RUNTIME_DIR
 
 exec dwm

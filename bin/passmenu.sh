@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
 
 pass_type=$(printf "password\notp\nusername\ngenerate" | dmenu -p 'type: ')
 

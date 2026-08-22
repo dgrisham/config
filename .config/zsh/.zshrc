@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 
 # enable more zsh-specific globbing patterns
 # NOTE: this may break certain commands/operations involving ^, ?, [], etc.
@@ -43,9 +43,13 @@ autoload -Uz compinit
 fpath=($XDG_DATA_HOME/zsh/completions $fpath)
 compinit
 zmodload zsh/complist
+_comp_options+=(globdots) # Include hidden files.
 zstyle ':completion:*' menu select
+# zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' '+l:|=* r:|=*'
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+
+# bindkey '\t' expand-or-complete-prefix
 # tab-completion in the middle of file + directory names (e.g. 'ownlo' can tab-complete to 'downloads')
-zstyle ':completion:*' matcher-list '' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' '+l:|=* r:|=*'
 
 # vi mode
 bindkey -v
@@ -109,11 +113,9 @@ bindkey '^h' flirt-widget
 autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 
-# completion stuff (has to be called after syntax highlighting) (NOTE: requires installing this plugin)
-source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+# completion stuff (NOTE: requires installing this plugin)
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
-
 
 # fish-like autosuggestions plugin
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
@@ -143,7 +145,6 @@ compdef _wenv __wenv
 
 source $SRC/wenv/wenv
 [[ -n $WENV ]] && wenv_source $WENV
-
 
 # load completions
 for completion_file in $XDG_DATA_HOME/zsh/completions/bash/*; do source $completion_file; done
