@@ -83,6 +83,8 @@ alias tm = tmux attach
 alias lg = lazygit
 alias apv = mpv --vid=no
 
+alias claude = claude --dangerously-skip-permissions
+
 # fd
 def --wrapped fd [...args] {
     let fd_bin = if ("/opt/homebrew/bin/fd" | path exists) {
@@ -246,7 +248,7 @@ def ll [
             $"($bytes | fill --alignment right --width 5)  B"
         }
         $row | update size $formatted
-    } | update name {|row| $row.name | path basename} | select name type mode user group size modified created)
+    } | update name {|row| $row.name | path basename} | select name type target mode user group size modified created)
     let sorted = if $time and $reverse {
         $cols | sort-by modified --reverse
     } else if $time {
@@ -257,15 +259,20 @@ def ll [
         $cols
     }
     $sorted | update name {|row|
-        if ($row.type == "dir") { $"(ansi { fg: '#ffffff' attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: '#ffffff' })($row.name)(ansi reset)" }
-    } | reject type
+        let colored = if ($row.type == "dir") { $"(ansi { fg: '#ffffff' attr: b })($row.name)(ansi reset)" } else { $"(ansi { fg: '#ffffff' })($row.name)(ansi reset)" }
+        if $row.type == "symlink" and ($row.target | is-not-empty) {
+            $"($colored) -> (ansi { fg: '#5fafff' })($row.target)(ansi reset)"
+        } else {
+            $colored
+        }
+    } | reject type target
 }
 
 alias la = ll -a
-alias lt = ll -tr
+alias lt = ll -t
 alias lta = ll -at
-alias ltr = ll -t
-alias lrt = ll -t
+alias lrt = ll -rt
+alias ltr = ll -rt
 
 # List available themes
 # use ~/.config/nushell/themes.nu *
@@ -275,6 +282,19 @@ source ~/src/wenv/nu/wenv.nu
 
 # Carapace Completions
 
-let carapace_completer = {|spans| carapace $spans.0 nushell ...$spans | from json }
 $env.config.completions.external.enable = true
-$env.config.completions.external.completer = $carapace_completer
+
+# Returning null falls back to nushell's own file completion — needed when
+# carapace has no spec for a command, else it completes to nothing at all.
+if (which carapace | is-not-empty) {
+    $env.config.completions.external.completer = {|spans|
+        let out = (carapace $spans.0 nushell ...$spans | complete)
+        if $out.exit_code != 0 or ($out.stdout | is-empty) { return null }
+        let result = ($out.stdout | from json)
+        if ($result | is-empty) or ($result | where value =~ '^-.*ERR$' | is-not-empty) {
+            null
+        } else {
+            $result
+        }
+    }
+}
