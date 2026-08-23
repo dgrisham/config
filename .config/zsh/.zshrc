@@ -118,8 +118,9 @@ source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring
 bindkey -M vicmd k history-substring-search-up
 bindkey -M vicmd j history-substring-search-down
 
-# fish-like autosuggestions plugin
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+# fish-like autosuggestions plugin (this is needed on Arch, on NixOS it's provided by programs.zsh -> sourced from /etc/zshrc)
+[[ -r /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]] \
+  && source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 bindkey '^ ' autosuggest-accept
 # these only work while typing / in 'insert' mode
 bindkey '^f' vi-forward-word # move cursor forward a word, which also has the effect of incremental completion w/ the autosuggestions
