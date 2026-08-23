@@ -1,0 +1,41 @@
+{
+	email dmgrisham@gmail.com
+	# DNS-01 via Cloudflare: no inbound ports, immune to the dynamic public IP.
+	# Requires env CF_API_TOKEN = a *scoped* Cloudflare token with
+	#   Zone.Zone:Read + Zone.DNS:Edit  for grish.haus and grish.dev.
+	acme_dns cloudflare {env.CF_API_TOKEN}
+}
+
+grish.haus {
+	root * /var/www/grish.haus
+	file_server
+	header Strict-Transport-Security "max-age=31536000"
+	handle_errors {
+		@5xx expression {http.error.status_code} >= 500
+		handle @5xx {
+			rewrite * /html/50x.html
+			file_server
+		}
+	}
+}
+
+flix.grish.haus {
+	redir / /web/ 302
+	reverse_proxy localhost:8096
+	header Strict-Transport-Security "max-age=31536000"
+}
+
+cpss.grish.haus {
+	reverse_proxy 127.0.0.1:3333 {
+        # disable buffering for SSE
+		flush_interval -1
+	}
+}
+
+fossil.grish.haus {
+	reverse_proxy 127.0.0.1:8111
+}
+
+grish.dev {
+	reverse_proxy 127.0.0.1:7260
+}
