@@ -25,6 +25,11 @@
 
   services.openssh.enable = true;   # PasswordAuthentication set per-host
 
+  programs.gnupg.agent = {
+    enable = true;
+    pinentryPackage = pkgs.pinentry-curses;
+  };
+
   hardware.graphics.enable = true;
 
   # X, no display manager: startx into dwm via ~/.config/x11/xinitrc
@@ -74,8 +79,9 @@
     pulseaudio pavucontrol rsync scrot go go-task gcc silver-searcher unzip
     xclip xdotool zathura zbar lazygit lf tmux feh flameshot gimp fossil openssh
     (pass.withExtensions (exts: [ exts.pass-otp ])) exfatprogs dosfstools
-    brave vscode jellyfin-mpv-shim inetutils unclutter-xfixes xev
+    brave vscode jellyfin-mpv-shim inetutils unclutter-xfixes xev nodejs
     claude-code nushell http-nu mpv zsh-history-substring-search diceware
+    pinentry-curses   # provides stable /run/current-system/sw/bin/pinentry-curses for gpg-agent.conf
 
     # kakoune master; impure fetch (no rev) re-fetched each rebuild — fine, not a flake
     (kakoune-unwrapped.overrideAttrs (old: {
