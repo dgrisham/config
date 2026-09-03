@@ -65,6 +65,7 @@
   programs.direnv = { enable = true; nix-direnv.enable = true; };
   programs.zsh = {
     enable = true;
+    enableGlobalCompInit = false;   # ~/.config/zsh/.zshrc runs its own (cached) compinit
     autosuggestions.enable = true;
     syntaxHighlighting.enable = true;
     interactiveShellInit = ''

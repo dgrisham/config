@@ -38,10 +38,21 @@ setopt AUTO_CD
 
 export ZSH_COMPDUMP="$XDG_CACHE_HOME/zsh/zcompdump"
 
-# Basic auto/tab complete:
+# Basic auto/tab complete. Cache the dump: full rebuild (+ security audit) only
+# when it's missing or >24h old, otherwise reuse it (-C). Saves ~200ms/shell.
 autoload -Uz compinit
 fpath=($XDG_DATA_HOME/zsh/completions $fpath)
-compinit
+mkdir -p "${ZSH_COMPDUMP:h}"
+() {
+  # N: nullglob - if glob is empty, just expand to "" instead of erroring
+  # mh-24: match by *m*odification time, in *h*ours, less then 24 (hours) ago
+  #   -> match files modified in the last day
+  # So these two lines add the -C flag to 'bypass security and dump-file checks'
+  # if the compdump file was (re)generated in the last 24 hours
+  local dump=("$ZSH_COMPDUMP"(Nmh-24))
+  # adds -C flag if the $dump array is non-empty
+  compinit ${dump:+-C} -d "$ZSH_COMPDUMP"
+}
 zmodload zsh/complist
 _comp_options+=(globdots) # Include hidden files.
 zstyle ':completion:*' menu select
@@ -87,7 +98,7 @@ echo -ne '\e[5 q' # Use beam shape cursor on startup.
 preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
 
 # Use lf to switch directories and bind it to ctrl-o
-lfcd () {
+lfcd() {
     tmp="$(mktemp)"
     lf -last-dir-path="$tmp" "$@"
     if [ -f "$tmp" ]; then
@@ -98,6 +109,17 @@ lfcd () {
 }
 bindkey -s '^o' 'lfcd\n'
 
+# ctrl-r fzf fuzzy selector, other things probably.
+# cache `fzf --zsh`, regenerate when the fzf binary path changes (nix version bumps)
+() {
+  local cache=$XDG_CACHE_HOME/zsh/fzf.zsh
+  # :A resolves the symlink to the /nix/store path, which changes on version bumps
+  if [[ ! -s $cache || ${${(f)"$(<$cache)"}[1]} != "# ${commands[fzf]:A}" ]]; then
+    print -r -- "# ${commands[fzf]:A}" > $cache
+    fzf --zsh >> $cache
+  fi
+  source $cache
+}
 
 flirt-widget() {
   LBUFFER="${LBUFFER}$(flirt -x </dev/tty 2>/dev/tty)"
