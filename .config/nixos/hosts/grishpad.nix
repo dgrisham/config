@@ -26,7 +26,7 @@
     ACTION=="add", SUBSYSTEM=="backlight", GROUP="video", MODE="0664"
   '';
 
-  users.users.grish.shell = pkgs.nushell;
+  users.users.grish.shell = pkgs.zsh;
 
   environment.systemPackages = with pkgs; [
     iwd            # iwctl
