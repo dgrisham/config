@@ -21,11 +21,15 @@ git_branch_prompt() {
 # Enable colors and change prompt:
 autoload -U colors && colors
 setopt prompt_subst
+# Per-host prompt colorspalette
+if [[ $HOST == grishpad ]]; then
+  _pc_user=161 _pc_at=250 _pc_host=242 _pc_colon=238 _pc_path=75
+else
+  _pc_user=89 _pc_at=252 _pc_host=245 _pc_colon=252 _pc_path=227
+fi
 PS1="\$(wenv_prompt)
-%F{89}%n%F{252}@%F{245}%M%F{252}:%F{227}%~%f\$(git_branch_prompt)
+%F{$_pc_user}%n%F{$_pc_at}@%F{$_pc_host}%M%F{$_pc_colon}:%F{$_pc_path}%~%f\$(git_branch_prompt)
 $%b "
-# 94
-# %F{89}%n%F{252}@%F{245}%M:%F{227}%~%f\$(git_branch_prompt)
 
 # History in cache directory:
 HISTSIZE=10000
