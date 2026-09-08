@@ -12,15 +12,6 @@ map D ${{
 map Q quit
 map q
 
-cmd n ${{
-    printf "new file's name: "
-    read filename
-    [ $filename != '' ] && "$EDITOR" "$filename"
-}}
-
-map Q quit
-map q
-
 cmd open_by_extension ${{
     test -L "$f" && f=$(readlink -f "$f")
     fname=$(basename -- "$f")
@@ -43,6 +34,9 @@ cmd open_by_extension ${{
         html)
             open -a "Brave Browser" "$fx" &
             ;;
+        md)
+            mdterm "$fx"
+            ;;
         # png|jpg|jpeg|webp)
         #     feh -x. "$fx" &
         #     ;;
@@ -61,11 +55,6 @@ map '*' open_recursively
 cmd open ${{
     $EDITOR $fx
 }}
-
-cmd new ${{
-    $EDITOR $1
-}}
-map n push :new<space>
 
 cmd skak ${{
     skak || exit 0
