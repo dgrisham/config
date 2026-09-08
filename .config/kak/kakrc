@@ -1,3 +1,8 @@
+# load kak's globally-installed autoload scripts
+evaluate-commands %sh{
+    find -L "$kak_runtime/autoload" -name '*.kak' -exec printf 'source "%s"\n' {} \;
+}
+
 ## clippy -> dilbert
 set-option global ui_options terminal_set_title=false terminal_assistant=dilbert
 
