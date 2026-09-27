@@ -103,6 +103,18 @@ lfcd () {
 }
 bindkey -s '^o' 'lfcd\n'
 
+# ctrl-r fzf fuzzy selector, other things probably.
+# cache `fzf --zsh`, regenerate when the fzf binary path changes (brew upgrades)
+() {
+  local cache=$XDG_CACHE_HOME/zsh/fzf.zsh
+  # :A resolves the symlink to the real Cellar path, which changes on version bumps
+  if [[ ! -s $cache || ${${(f)"$(<$cache)"}[1]} != "# ${commands[fzf]:A}" ]]; then
+    print -r -- "# ${commands[fzf]:A}" > $cache
+    fzf --zsh >> $cache
+  fi
+  source $cache
+}
+
 flirt-widget() {
   # LBUFFER="${LBUFFER}$(flirt -x </dev/tty 2>/dev/tty)"
   LBUFFER="${LBUFFER}$(flirt -x)"
