@@ -103,6 +103,9 @@ lfcd () {
 }
 bindkey -s '^o' 'lfcd\n'
 
+# prompt on top, best match right below it, instead of growing up from the bottom
+export FZF_CTRL_R_OPTS='--layout=reverse'
+
 # ctrl-r fzf fuzzy selector, other things probably.
 # cache `fzf --zsh`, regenerate when the fzf binary path changes (brew upgrades)
 () {
