@@ -1,0 +1,35 @@
+#:schema https://docs.jj-vcs.dev/latest/config-schema.json
+
+[user]
+name = "David Grisham"
+email = "dmgrisham@gmail.com"
+
+[ui]
+# :git emits git-format diffs; delta renders them (styling in git config [delta]).
+# delta is the default pager because it passes non-diff output (jj log) through
+# unharmed. diffnav is a diff-only TUI and would break jj log as the global pager,
+# so it's scoped to the `jj diffnav` alias below instead.
+diff-formatter = ":git"
+pager = "delta"
+# difftastic (structural, dir-based) instead needs diff-formatter, not pager:
+#   diff-formatter = ["difft", "--color=always", "--display=side-by-side-show-both", "$left", "$right"]
+
+[aliases]
+# `jj diffnav [args]` — view the diff in the diffnav TUI. Overrides the pager for
+# this one command only (jj log etc. keep using delta). Extra args pass through,
+# e.g. `jj diffnav -r @-` or `jj diffnav path/`.
+diffnav = ["diff", "--config", "ui.pager=diffnav"]
+
+# lazyjj renders jj's own colored diff (not delta). Use git format so add/remove
+# is whole-line, then color those as red/green *background* (fg=default) with no
+# token underline. Only affects jj's native color output (lazyjj, piped jj diff);
+# the delta-rendered terminal `jj diff` is unaffected.
+[lazyjj]
+diff-format = "git"
+
+[colors]
+# muted dark bg (matches delta's rgb(0,40,0)/rgb(63,0,1)) — plain "green"/"red"
+# were the terminal's full-brightness ANSI colors, too bright.
+"diff added" = { fg = "default", bg = "#004800" }
+"diff removed" = { fg = "default", bg = "#5a0000" }
+"diff token" = { underline = false }
