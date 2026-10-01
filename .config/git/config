@@ -5,3 +5,22 @@
 	rebase = false
 [url "git@github.com:"]
 	pushInsteadOf = https://github.com/
+[delta]
+	# bright-white file names + line numbers; subtle gray separators (was delta's blue)
+	file-style = "231 bold"
+	file-decoration-style = "240 ul"
+	hunk-header-style = "231"
+	hunk-header-file-style = "231"
+	hunk-header-line-number-style = "231"
+	hunk-header-decoration-style = "240 box"
+	# syntax highlighting off entirely — no token colors, just red/green diff bg
+	syntax-theme = "none"
+	zero-style = "normal"
+	# +/- lines: plain text signalled by red/green bg only (no syntax-color clash).
+	# changed word = brighter bg + underline, a non-color cue for r/g colorblindness.
+	plus-style = "normal auto"
+	plus-emph-style = "normal auto"
+	minus-style = "normal auto"
+	minus-emph-style = "normal auto"
+	# keep literal +/- markers: color-independent add/remove signal
+	keep-plus-minus-markers = true
