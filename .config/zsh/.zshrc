@@ -103,8 +103,9 @@ lfcd () {
 }
 bindkey -s '^o' 'lfcd\n'
 
-# prompt on top, best match right below it, instead of growing up from the bottom
-export FZF_CTRL_R_OPTS='--layout=reverse'
+# prompt on top, best match right below it, instead of growing up from the bottom.
+# no-multi + rebinding tab/shift-tab to plain down/up
+export FZF_CTRL_R_OPTS='--layout=reverse --no-multi --bind=tab:down,shift-tab:up'
 
 # ctrl-r fzf fuzzy selector, other things probably.
 # cache `fzf --zsh`, regenerate when the fzf binary path changes (brew upgrades)
