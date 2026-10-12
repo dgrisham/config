@@ -26,4 +26,4 @@ macos-option-as-alt = true
 quit-after-last-window-closed = true
 
 # Disable link detection (no URL/path highlighting or hover effects)
-link-url = false
+link-url = true
