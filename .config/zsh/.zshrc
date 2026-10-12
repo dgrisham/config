@@ -14,7 +14,24 @@ wenv_prompt() {
     [[ -n "$WENV" ]] && echo "($WENV)"
 }
 
-git_branch_prompt() {
+vcs_prompt() {
+    # prioritize jj
+    jj root --ignore-working-copy &>/dev/null || return
+    local ws=$(jj workspace list -T 'if(self.target().current_working_copy(), self.name())' --ignore-working-copy 2>/dev/null)
+    local bookmark
+    if [[ -n "$ws" && "$ws" != "default" ]]; then
+        bookmark="$ws"
+    else
+        bookmark=$(jj log -r 'heads(::@ & bookmarks())' --no-graph --ignore-working-copy \
+            -T 'if(bookmarks, bookmarks, change_id.shortest(8))' 2>/dev/null)
+    fi
+    local at=$(jj log -r @ --no-graph --ignore-working-copy -T 'change_id.shortest(8)' 2>/dev/null)
+    if [[ -n $bookmark || -n $at ]]; then
+        echo " (${bookmark}:${at})"
+        return
+    fi
+
+    # then git
     local branch=$(git branch --show-current 2>/dev/null)
     [[ -n "$branch" ]] && echo " ($branch)"
 }
@@ -24,7 +41,7 @@ autoload -U colors && colors
 setopt prompt_subst
 
 PS1="\$(wenv_prompt)
-%F{161}grish%F{250}@%F{242}gunmetal%F{238}:%F{75}%~%f\$(git_branch_prompt)
+%F{161}grish%F{250}@%F{242}gunmetal%F{238}:%F{75}%~%f\$(vcs_prompt)
 $%b "
 
 # PS1="\$(wenv_prompt)
