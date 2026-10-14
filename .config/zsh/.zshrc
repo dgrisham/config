@@ -15,8 +15,11 @@ wenv_prompt() {
 }
 
 vcs_prompt() {
-    # prioritize jj
-    jj root --ignore-working-copy &>/dev/null || return
+    jj_prompt || git_prompt
+}
+
+jj_prompt() {
+    jj root --ignore-working-copy &>/dev/null || return 1
     local ws=$(jj workspace list -T 'if(self.target().current_working_copy(), self.name())' --ignore-working-copy 2>/dev/null)
     local bookmark
     if [[ -n "$ws" && "$ws" != "default" ]]; then
@@ -26,12 +29,11 @@ vcs_prompt() {
             -T 'if(bookmarks, bookmarks, change_id.shortest(8))' 2>/dev/null)
     fi
     local at=$(jj log -r @ --no-graph --ignore-working-copy -T 'change_id.shortest(8)' 2>/dev/null)
-    if [[ -n $bookmark || -n $at ]]; then
-        echo " (${bookmark}:${at})"
-        return
-    fi
+    [[ -n $bookmark || -n $at ]] || return 1
+    echo " (${bookmark}:${at})"
+}
 
-    # then git
+git_prompt() {
     local branch=$(git branch --show-current 2>/dev/null)
     [[ -n "$branch" ]] && echo " ($branch)"
 }
