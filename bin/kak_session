@@ -6,15 +6,13 @@ kakbin="$HOMEBREW_ROOT/bin/kak"
 local server_name=$(sed 's/\//-/g' <<< $WENV)
 local base_dir="$WENV_DIR"
 
-if [[ -n "$GIT_WORKTREES" ]]; then
-    for worktree_dir in $(git worktree list | cut -d' ' -f1 | grep "$GIT_WORKTREES"); do
-        if [[ $PWD/ = $worktree_dir/* ]]; then
-            base_dir="$worktree_dir"
-            branch=${worktree_dir#"${GIT_WORKTREES}/"}
-            server_name="$(sed 's/\//-/g' <<< $branch)"
-            break
-        fi
-    done
+local toplevel=$(git rev-parse --show-toplevel 2>/dev/null)
+if [[ -n "$GIT_WORKTREES" && -n "$toplevel" && "$toplevel/" == "$GIT_WORKTREES"/* ]]; then
+    base_dir="$toplevel"
+    server_name="$(sed 's/\//-/g' <<< ${toplevel#"${GIT_WORKTREES}/"})"
+elif [[ -n "$JJ_WORKSPACES" && -n "$toplevel" && "$toplevel/" == "$JJ_WORKSPACES"/* ]]; then
+    base_dir="$toplevel"
+    server_name="$(sed 's/\//-/g' <<< ${toplevel#"${JJ_WORKSPACES}/"})"
 fi
 
 local socket_file=$(grep "^$server_name\$" <<< $($kakbin -l))
