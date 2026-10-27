@@ -1,0 +1,4 @@
+[ui]
+  # selected-row highlight = "bright black" blended toward the terminal background;
+  # higher = closer to the terminal bg = darker (default 0.4, 0 = no blend)
+  background_blend = 0.85
