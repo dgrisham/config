@@ -33,3 +33,41 @@ diff-format = "git"
 "diff added" = { fg = "default", bg = "#004800" }
 "diff removed" = { fg = "default", bg = "#5a0000" }
 "diff token" = { underline = false }
+
+# log colors. "working_copy X" entries override the plain ones on the @ row, so
+# each is set too (bright variant keeps @ slightly emphasized).
+change_id = "yellow"
+"working_copy change_id" = "bright yellow"
+# commit hash prefix: light gray, a step above the bright-black "rest"
+commit_id = "white"
+"working_copy commit_id" = "white"
+author = "#8f8f8f"
+committer = "#8f8f8f"
+"working_copy author" = "#8f8f8f"
+"working_copy committer" = "#8f8f8f"
+timestamp = "#adadad"
+"working_copy timestamp" = "#adadad"
+bookmark = "yellow"
+bookmarks = "yellow"
+local_bookmarks = "yellow"
+remote_bookmarks = "yellow"
+"working_copy bookmark" = "bright yellow"
+"working_copy bookmarks" = "bright yellow"
+"working_copy local_bookmarks" = "bright yellow"
+"working_copy remote_bookmarks" = "bright yellow"
+# "(empty)" tag on empty commits
+empty = "bright black"
+"working_copy empty" = "bright black"
+# workspace name shown as "<name>@" (not a git branch)
+working_copies = "cyan"
+"working_copy working_copies" = "bright cyan"
+# git tags (release tags pile up; keep them dim)
+tag = "bright black"
+tags = "bright black"
+"working_copy tag" = "bright black"
+"working_copy tags" = "bright black"
+# "(no description set)" placeholder, same as "(empty)" and "(elided revisions)"
+"description placeholder" = "bright black"
+"empty description placeholder" = "bright black"
+"working_copy description placeholder" = "bright black"
+"working_copy empty description placeholder" = "bright black"
